@@ -59,11 +59,12 @@ Current live power draw: ${currentPower} kW.
 Equipment:
 ${equipmentListStr}
 
-If the user asks to control an equipment, respond ONLY with a JSON object in this exact format (no extra text):
-{"action": "controlEquipment", "actions": [{"equipmentName": "CRAH Unit Alpha", "command": "OFF"}]}
+If the user asks to control an equipment (including requests for a delay like "after 5 seconds"), respond ONLY with a JSON object in this exact format:
+{"action": "controlEquipment", "actions": [{"equipmentName": "AC", "command": "ON", "delay": 5}]}
 
-For multiple equipment follow the same format with multiple items in the actions array.
-For all other questions, answer helpfully and concisely in plain text.`;
+- "delay" is optional and should be in seconds.
+- Use multiple items in the "actions" array for multiple commands.
+- For all other questions, answer helpfully and concisely in plain text.`;
 
         const response = await groq.chat.completions.create({
             model: MODEL,
@@ -77,7 +78,7 @@ For all other questions, answer helpfully and concisely in plain text.`;
 
         const rawText = response.choices[0]?.message?.content || '';
 
-        // Strip markdown code fences if the model wraps its JSON (e.g. ```json ... ```)
+        // Strip markdown code fences if the model wraps its JSON
         const cleanedText = rawText.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim();
 
         // Try to parse as an action JSON response
@@ -85,15 +86,19 @@ For all other questions, answer helpfully and concisely in plain text.`;
         if (jsonMatch) {
             try {
                 const actionData = JSON.parse(jsonMatch[0]);
+                const hasDelay = actionData.actions.some(a => a.delay > 0);
+
                 return {
-                    text: "I'll execute that command for you now.",
+                    text: hasDelay
+                        ? "I've scheduled those commands with the requested delay."
+                        : "I'll execute that command for you now.",
                     action: {
                         name: 'controlEquipment',
                         args: { actions: actionData.actions }
                     }
                 };
-            } catch (parseError) {
-                console.warn("AI returned action-like text but JSON parsing failed:", parseError.message);
+            } catch (error) {
+                console.warn("AI returned action-like text but JSON parsing failed:", error.message);
             }
         }
 

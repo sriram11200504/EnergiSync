@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { getEquipment, updateEquipment, addEquipment, getMonthlyUsage, deleteEquipment } = require('../controllers/equipmentController');
+const { getEquipment, updateEquipment, addEquipment, getMonthlyUsage, deleteEquipment, getTariffRecommendations, getSavingsHistory } = require('../controllers/equipmentController');
+
+router.get('/optimization/recommendations', getTariffRecommendations);
+router.get('/optimization/savings', getSavingsHistory);
 
 router.get('/usage/monthly', getMonthlyUsage);
 router.get('/', getEquipment);

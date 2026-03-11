@@ -48,11 +48,14 @@ client.on('connect', () => {
                 };
 
                 // Add temperature logic for specific devices
-                if (device.name === 'AC') {
+                if (device.name.toLowerCase().includes('ac')) {
                     payload.temperature = isON ? (22 + (Math.random() * 2)) : 26;
                     payload.temperature = Number(payload.temperature.toFixed(1));
-                } else if (device.name === 'Refrigerator') {
+                } else if (device.name.toLowerCase().includes('refrigerator')) {
                     payload.temperature = isON ? (2 + (Math.random() * 2)) : 5;
+                    payload.temperature = Number(payload.temperature.toFixed(1));
+                } else if (device.name.toLowerCase().includes('water heater')) {
+                    payload.temperature = isON ? (55 + (Math.random() * 5)) : 40;
                     payload.temperature = Number(payload.temperature.toFixed(1));
                 }
 

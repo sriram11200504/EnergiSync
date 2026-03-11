@@ -52,36 +52,45 @@ const AIAssistantWidget = () => {
             let failCount = 0;
 
             for (const act of actions) {
-                const { equipmentName, command } = act;
-                // Soft match to handle "CRAH Unit" vs "CRAH Unit Alpha"
+                const { equipmentName, command, delay } = act;
+                // Soft match
                 const targetEquipment = equipmentList.find(a =>
                     equipmentName.toLowerCase().includes(a.name.toLowerCase()) ||
                     a.name.toLowerCase().includes(equipmentName.toLowerCase())
                 );
 
                 if (targetEquipment) {
-                    const isTurningOn = command === 'ON';
+                    const executeAction = () => {
+                        const isTurningOn = command === 'ON';
 
-                    // Publish MQTT command
-                    if (window.mqttClient && window.mqttClient.connected) {
-                        const topic = `energysync/control/${targetEquipment.name.toLowerCase().replaceAll(' ', '_')}`;
-                        const payload = JSON.stringify({
-                            command: command,
-                            timestamp: new Date().toISOString(),
-                            enabled: isTurningOn
-                        });
-                        window.mqttClient.publish(topic, payload);
-                        console.log(`🤖 AI Sent MQTT to ${topic}: ${payload}`);
+                        // Publish MQTT command
+                        if (window.mqttClient && window.mqttClient.connected) {
+                            const topic = `energysync/control/${targetEquipment.name.toLowerCase().replaceAll(' ', '_')}`;
+                            const payload = JSON.stringify({
+                                command: command,
+                                timestamp: new Date().toISOString(),
+                                enabled: isTurningOn
+                            });
+                            window.mqttClient.publish(topic, payload);
+                            console.log(`🤖 AI Executed MQTT to ${topic}: ${payload}`);
+                        }
+
+                        // Update React UI state optimistically
+                        setEquipment(prevEquipment =>
+                            prevEquipment.map(eq =>
+                                eq.id === targetEquipment.id
+                                    ? { ...eq, status: isTurningOn }
+                                    : eq
+                            )
+                        );
+                    };
+
+                    if (delay && delay > 0) {
+                        console.log(`🤖 AI Scheduled action for ${targetEquipment.name} with ${delay}s delay`);
+                        setTimeout(executeAction, delay * 1000);
+                    } else {
+                        executeAction();
                     }
-
-                    // Update React UI state optimistically
-                    setEquipment(prevEquipment =>
-                        prevEquipment.map(eq =>
-                            eq.id === targetEquipment.id
-                                ? { ...eq, status: isTurningOn }
-                                : eq
-                        )
-                    );
 
                     successCount++;
                 } else {

@@ -13,6 +13,8 @@ import {
 import {
     BarChart,
     Bar,
+    AreaChart,
+    Area,
     LineChart,
     Line,
     XAxis,
@@ -29,10 +31,39 @@ const TariffOptimization = () => {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [scheduledItems, setScheduledItems] = useState([]);
     const [showSuccess, setShowSuccess] = useState(null);
+    const [recommendations, setRecommendations] = useState([]);
+    const [savingsHistory, setSavingsHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 60000);
         return () => clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [recRes, savRes] = await Promise.all([
+                    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/equipment/optimization/recommendations`),
+                    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/equipment/optimization/savings`)
+                ]);
+
+                if (recRes.ok && savRes.ok) {
+                    const recData = await recRes.json();
+                    const savData = await savRes.json();
+                    setRecommendations(recData);
+                    setSavingsHistory(savData);
+                }
+            } catch (error) {
+                console.error("Error fetching optimization data:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+        const interval = setInterval(fetchData, 30000); // Polling every 30s
+        return () => clearInterval(interval);
     }, []);
 
     const tariffData = [
@@ -54,65 +85,32 @@ const TariffOptimization = () => {
 
     const currentTariff = getCurrentTariff();
 
-    const savingsData = [
-        { month: 'Jan', current: 2400, optimized: 2040 },
-        { month: 'Feb', current: 2200, optimized: 1870 },
-        { month: 'Mar', current: 2600, optimized: 2210 },
-        { month: 'Apr', current: 2800, optimized: 2380 },
-        { month: 'May', current: 3200, optimized: 2720 },
-        { month: 'Jun', current: 3400, optimized: 2890 },
-    ];
+    const handleSchedule = async (id, recommendedTime) => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/equipment/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    schedule: {
+                        enabled: true,
+                        time: recommendedTime || "22:00"
+                    }
+                })
+            });
 
-    const initialRecommendations = [
-        {
-            id: 1,
-            appliance: 'Washing Machine',
-            currentTime: '14:00',
-            suggestedTime: '22:00',
-            currentCost: 45,
-            optimizedCost: 25,
-            savings: 20,
-            priority: 'high'
-        },
-        {
-            id: 2,
-            appliance: 'Dishwasher',
-            currentTime: '19:00',
-            suggestedTime: '23:00',
-            currentCost: 35,
-            optimizedCost: 22,
-            savings: 13,
-            priority: 'medium'
-        },
-        {
-            id: 3,
-            appliance: 'EV Charging',
-            currentTime: '18:00',
-            suggestedTime: '01:00',
-            currentCost: 180,
-            optimizedCost: 120,
-            savings: 60,
-            priority: 'high'
-        },
-        {
-            id: 4,
-            appliance: 'Water Heater',
-            currentTime: '17:00',
-            suggestedTime: '05:00',
-            currentCost: 55,
-            optimizedCost: 38,
-            savings: 17,
-            priority: 'medium'
-        },
-    ];
-
-    const handleSchedule = (id) => {
-        setScheduledItems([...scheduledItems, id]);
-        setShowSuccess(id);
-        setTimeout(() => setShowSuccess(null), 3000);
+            if (response.ok) {
+                setScheduledItems([...scheduledItems, id]);
+                setShowSuccess(id);
+                setTimeout(() => setShowSuccess(null), 3000);
+            }
+        } catch (error) {
+            console.error("Error persisting schedule:", error);
+        }
     };
 
-    const totalPotentialSavings = initialRecommendations.reduce((sum, rec) => sum + rec.savings, 0);
+    const totalPotentialSavings = recommendations.reduce((sum, rec) => sum + rec.savings, 0);
+
+    if (loading) return <div className="loading-container">Analyzing usage patterns...</div>;
 
     return (
         <div className="tariff-optimization">
@@ -202,10 +200,20 @@ const TariffOptimization = () => {
                 <div className="chart-section card-glass">
                     <div className="section-header">
                         <h3><Zap size={18} /> Cost Reduction</h3>
-                        <span className="badge badge-success">15% Optimized</span>
+                        <span className="badge badge-success">Dynamic Trend</span>
                     </div>
                     <ResponsiveContainer width="100%" height={250}>
-                        <LineChart data={savingsData}>
+                        <AreaChart data={savingsHistory}>
+                            <defs>
+                                <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.1} />
+                                    <stop offset="95%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0} />
+                                </linearGradient>
+                                <linearGradient id="colorOptimized" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="hsl(142, 71%, 45%)" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                             <XAxis dataKey="month" stroke="var(--text-tertiary)" fontSize={12} />
                             <YAxis stroke="var(--text-tertiary)" fontSize={12} unit="₹" />
@@ -218,23 +226,23 @@ const TariffOptimization = () => {
                                 }}
                             />
                             <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-                            <Line
+                            <Area
                                 type="monotone"
                                 dataKey="current"
                                 stroke="hsl(0, 84%, 60%)"
                                 strokeWidth={2}
-                                dot={{ r: 4 }}
-                                name="Normal Cost"
+                                fill="url(#colorCurrent)"
+                                name="Current Cost"
                             />
-                            <Line
+                            <Area
                                 type="monotone"
                                 dataKey="optimized"
                                 stroke="hsl(142, 71%, 45%)"
                                 strokeWidth={2}
-                                dot={{ r: 4 }}
+                                fill="url(#colorOptimized)"
                                 name="AI Optimized"
                             />
-                        </LineChart>
+                        </AreaChart>
                     </ResponsiveContainer>
                 </div>
             </div>
@@ -244,16 +252,16 @@ const TariffOptimization = () => {
                 <div className="section-header">
                     <div>
                         <h3>Smart Scheduling Recommendations</h3>
-                        <p className="text-secondary">AI-driven suggestions to shift loads to off-peak hours</p>
+                        <p className="text-secondary">AI-driven suggestions based on your real usage patterns</p>
                     </div>
                     <button
                         className="btn btn-primary"
                         onClick={() => {
-                            initialRecommendations.forEach(r => {
-                                if (!scheduledItems.includes(r.id)) handleSchedule(r.id);
+                            recommendations.forEach(r => {
+                                if (!scheduledItems.includes(r.id)) handleSchedule(r.id, r.recommendedTime);
                             });
                         }}
-                        disabled={scheduledItems.length === initialRecommendations.length}
+                        disabled={scheduledItems.length === recommendations.length || recommendations.length === 0}
                     >
                         <CheckCircle size={18} />
                         Apply All Optimizations
@@ -261,7 +269,7 @@ const TariffOptimization = () => {
                 </div>
 
                 <div className="recommendations-grid">
-                    {initialRecommendations.map((rec) => (
+                    {recommendations.length > 0 ? recommendations.map((rec) => (
                         <div key={rec.id} className={`recommendation-card card-glass priority-${rec.priority} ${scheduledItems.includes(rec.id) ? 'scheduled' : ''}`}>
                             <div className="recommendation-header">
                                 <div className="recommendation-title">
@@ -304,13 +312,13 @@ const TariffOptimization = () => {
                                 <div className="recommendation-footer">
                                     <div className="savings-info">
                                         <Info size={14} />
-                                        <span>Monthly: ₹{rec.savings * 30} saved</span>
+                                        <span>Estimated Monthly: ₹{(rec.savings * 30).toFixed(0)} saved</span>
                                     </div>
                                     <div className="recommendation-actions">
                                         {!scheduledItems.includes(rec.id) ? (
                                             <button
                                                 className="btn-success-glass"
-                                                onClick={() => handleSchedule(rec.id)}
+                                                onClick={() => handleSchedule(rec.id, rec.recommendedTime)}
                                             >
                                                 <Calendar size={14} />
                                                 Schedule Shift
@@ -330,7 +338,11 @@ const TariffOptimization = () => {
                                 </div>
                             )}
                         </div>
-                    ))}
+                    )) : (
+                        <div className="empty-recommendations card-glass">
+                            <p>No optimization recommendations currently. Your usage is already highly efficient!</p>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -340,9 +352,8 @@ const TariffOptimization = () => {
                 <div className="info-content">
                     <h4>AI Optimization Engine</h4>
                     <p>
-                        Your smart home profile is being analyzed in real-time. By shifting <strong>{totalPotentialSavings}%</strong> of
-                        your daily load to off-peak windows (22:00 - 05:00), you can reduce your carbon footprint
-                        by <strong>12kg CO2e</strong> per month while saving money.
+                        Your smart home profile is being analyzed in real-time. By shifting high-power loads to off-peak windows (22:00 - 05:00),
+                        you can reduce your carbon footprint while significantly lowering your monthly bill.
                     </p>
                 </div>
             </div>
