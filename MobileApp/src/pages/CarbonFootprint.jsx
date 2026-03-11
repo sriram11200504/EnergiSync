@@ -29,32 +29,44 @@ import {
 import './CarbonFootprint.css';
 
 const CarbonFootprint = () => {
-    const { currentPower, equipmentList } = useContext(EnergyContext);
+    const { currentPower, equipmentList, carbonData, monthlyTrend } = useContext(EnergyContext);
 
-    // Compute live footprint projection (e.g., 0.4 kg CO2 per kWh)
-    const currentEmissions = Math.max(10, Math.round(parseFloat(currentPower) * 120 * 0.4)) || 138;
+    // Determine whether real DB data is available
+    const hasDbData = carbonData.totalEmissions > 0;
+
+    // Live fallback: if DB has no data yet, estimate from current MQTT power reading
+    const liveEmissions    = Math.max(10, Math.round(parseFloat(currentPower) * 120 * 0.4)) || 138;
+    const currentEmissions = hasDbData ? Math.round(carbonData.totalEmissions) : liveEmissions;
+
     const targetEmissions = 100;
     const progress = Math.min(100, ((targetEmissions / currentEmissions) * 100)).toFixed(0);
 
-    const monthlyEmissions = [
-        { month: 'Jan', emissions: 185, saved: 25 },
-        { month: 'Feb', emissions: 172, saved: 32 },
-        { month: 'Mar', emissions: 165, saved: 38 },
-        { month: 'Apr', emissions: 158, saved: 45 },
-        { month: 'May', emissions: 142, saved: 52 },
-        { month: 'Jun', emissions: currentEmissions, saved: Math.round(currentEmissions * 0.3) },
-    ];
+    // AreaChart data: use DB monthly trend when available, else show a live-based placeholder
+    const monthlyEmissionsData = monthlyTrend.length > 0
+        ? monthlyTrend
+        : [
+            { month: 'Jan', emissions: 185, saved: 55 },
+            { month: 'Feb', emissions: 172, saved: 51 },
+            { month: 'Mar', emissions: 165, saved: 49 },
+            { month: 'Apr', emissions: 158, saved: 47 },
+            { month: 'May', emissions: 142, saved: 42 },
+            { month: 'Jun', emissions: currentEmissions, saved: Math.round(currentEmissions * 0.3) },
+        ];
 
     const colors = ['hsl(210, 100%, 56%)', 'hsl(142, 71%, 45%)', 'hsl(25, 95%, 53%)', 'hsl(45, 93%, 58%)', 'hsl(271, 76%, 53%)'];
 
-    const emissionsBySource = equipmentList.filter(a => a.status).length > 0
-        ? equipmentList.filter(a => a.status).map((eq, i) => ({
-            name: eq.name,
-            value: parseFloat(eq.power),
-            emissions: (parseFloat(eq.power) * 0.4).toFixed(2), // Assuming 0.4 is EMISSION_FACTOR
-            color: colors[i % colors.length]
-        }))
-        : [{ name: 'Standby Power', value: currentEmissions, color: 'hsl(0,0%,30%)' }];
+    // PieChart data: use DB per-device breakdown when available
+    const emissionsBySource = hasDbData && carbonData.byDevice.length > 0
+        ? carbonData.byDevice
+        : equipmentList.filter(a => a.status).length > 0
+            ? equipmentList.filter(a => a.status).map((eq, i) => ({
+                name: eq.name,
+                value: parseFloat(eq.power),
+                emissions: (parseFloat(eq.power) * 0.4).toFixed(2),
+                color: colors[i % colors.length]
+            }))
+            : [{ name: 'Standby Power', value: currentEmissions, color: 'hsl(0,0%,30%)' }];
+
 
     const environmentalImpact = [
         { category: 'Energy Efficiency', value: currentPower < 3 ? 92 : 65 },
@@ -95,17 +107,21 @@ const CarbonFootprint = () => {
         },
     ];
 
+    // Stat cards — real DB values with live fallbacks
+    const co2Saved         = hasDbData ? carbonData.co2Saved        : Math.round(currentEmissions * 0.3);
+    const treesEquivalent  = hasDbData ? carbonData.treesEquivalent : Math.max(1, Math.round(currentEmissions * 0.3 / 10));
+
     const stats = [
         {
             label: 'Total CO₂ Saved',
-            value: `${Math.round(currentEmissions * 0.3)} kg`,
-            description: 'This month',
+            value: `${parseFloat(co2Saved).toFixed(1)} kg`,
+            description: hasDbData ? 'This month (from DB)' : 'This month (estimated)',
             icon: Leaf,
             color: 'var(--success)'
         },
         {
             label: 'Trees Equivalent',
-            value: Math.max(1, Math.round(currentEmissions * 0.3 / 10)).toString(), // approx 1 tree per 10kg
+            value: parseFloat(treesEquivalent).toFixed(1),
             description: 'Trees planted',
             icon: TreePine,
             color: 'var(--primary-green)'
@@ -163,7 +179,7 @@ const CarbonFootprint = () => {
                         </div>
                     </div>
                     <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart data={monthlyEmissions}>
+                        <AreaChart data={monthlyEmissionsData}>
                             <defs>
                                 <linearGradient id="colorEmissions" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.3} />
