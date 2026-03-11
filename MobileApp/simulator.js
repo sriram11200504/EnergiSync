@@ -1,7 +1,8 @@
 import mqtt from 'mqtt';
 
 // Connection config
-const BROKER_URL = 'wss://broker.hivemq.com:8884/mqtt';
+const URL = import.meta.env.VITE_BROKER_URL;
+const BROKER_URL = `${URL}/mqtt`;
 const TOPIC = 'energysync/appliances/simulator';
 
 console.log('🔌 Virtual Appliance Simulator starting...');
