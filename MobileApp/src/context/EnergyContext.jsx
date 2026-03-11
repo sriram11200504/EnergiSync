@@ -15,18 +15,7 @@ export const EnergyProvider = ({ children }) => {
     });
     const [energyHistory, setEnergyHistory] = useState([]);
 
-    // Fetch appliances from backend
-    const fetchAppliances = async () => {
-        try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appliances`);
-            if (res.ok) {
-                const data = await res.json();
-                setAppliancesInternal(data);
-            }
-        } catch (error) {
-            console.error("Error fetching appliances:", error);
-        }
-    };
+
 
     // Fetch monthly billing summary from backend
     const fetchBillingSummary = async () => {
@@ -46,6 +35,22 @@ export const EnergyProvider = ({ children }) => {
     };
 
     // Load data on mount
+    const fetchAppliances = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appliances`);
+            if (res.ok) {
+                const data = await res.json();
+                setAppliancesInternal(data);
+            }
+        } catch (error) {
+            console.error("Error fetching appliances:", error);
+            // Default fallback if backend is unavailable so the UI doesn't crash completely
+            setAppliancesInternal([
+                { id: 1, name: 'Air Conditioner', room: 'Living Room', status: true, power: '1.5', schedule: {} },
+                { id: 2, name: 'Refrigerator', room: 'Kitchen', status: true, power: '0.3', schedule: {} }
+            ]);
+        }
+    };
     useEffect(() => {
         fetchAppliances();
         fetchBillingSummary();

@@ -1,7 +1,7 @@
 import mqtt from 'mqtt';
 
 // Default configuration
-let BROKER_URL = import.meta.env.VITE_BROKER_URL;
+let BROKER_URL = 'wss://broker.hivemq.com:8884/mqtt';
 let options = {
     keepalive: 60,
     protocolId: 'MQTT',
