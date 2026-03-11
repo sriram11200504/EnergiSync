@@ -25,6 +25,7 @@ app.get('/api/health', (req, res) => {
 
 // Import Routes
 app.use('/api/appliances', require('./routes/appliances'));
+app.use('/api/ai', require('./routes/ai'));
 
 app.listen(PORT, () => {
     console.log(`🚀 EnergiSync Backend API Server running on port ${PORT}`);

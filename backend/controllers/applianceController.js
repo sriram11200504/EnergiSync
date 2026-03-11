@@ -58,13 +58,18 @@ const updateAppliance = async (req, res) => {
         // Usage Tracking Logic
         if (updates.status !== undefined && originalAppliance.status !== updates.status) {
             if (updates.status === true) {
-                // Appliance turned ON -> Start new usage session
-                await ApplianceUsage.create({
-                    applianceId: updatedAppliance.id,
-                    startTime: new Date()
-                });
+                // Appliance turned ON -> Upsert: update existing open session or create a new one
+                // This prevents duplicate documents if toggled rapidly or after a server restart
+                await ApplianceUsage.findOneAndUpdate(
+                    { applianceId: updatedAppliance.id, endTime: null }, // find an existing open session
+                    {
+                        $set: { startTime: new Date() },       // reset the start time
+                        $setOnInsert: { applianceId: updatedAppliance.id } // only set on insert
+                    },
+                    { upsert: true, new: true }               // create if not found
+                );
             } else {
-                // Appliance turned OFF -> Close active session and calculate bill
+                // Appliance turned OFF -> Find the single open session and close it
                 const activeSession = await ApplianceUsage.findOne({
                     applianceId: updatedAppliance.id,
                     endTime: null
@@ -127,7 +132,7 @@ const getMonthlyUsage = async (req, res) => {
 
         // Merge finished session numbers
         const summaryByAppliance = appliances.map(app => {
-            const usage = usageData.find(u => u._id === app.id) || { totalHours: 0, totalEnergy: 0, totalCost: 0 };
+            const usage = usageData.find(u => Number(u._id) === Number(app.id)) || { totalHours: 0, totalEnergy: 0, totalCost: 0 };
 
             // Factor in live running sessions since the last time they were turned on
             const activeSession = activeSessions.find(s => s.applianceId === app.id);

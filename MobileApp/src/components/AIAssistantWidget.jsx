@@ -1,6 +1,5 @@
 import { useState, useContext, useEffect, useRef } from 'react';
 import { EnergyContext } from '../context/EnergyContext';
-import { chatWithAi } from '../aiService';
 import { Bot, X, Send, Sparkles, Loader2 } from 'lucide-react';
 import './AIAssistantWidget.css';
 
@@ -31,8 +30,13 @@ const AIAssistantWidget = () => {
         setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
         setIsTyping(true);
 
-        // Fetch AI response with current real-time context
-        const responseData = await chatWithAi(userMsg, currentPower, appliances);
+        // Call backend AI endpoint (Groq runs on backend — key never exposed to browser)
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: userMsg, currentPower, appliances })
+        });
+        const responseData = await res.json();
 
         setMessages(prev => [...prev, { role: 'assistant', text: responseData.text }]);
 

@@ -13,7 +13,22 @@ export const EnergyProvider = ({ children }) => {
         grandTotalCost: 0,
         summaryByAppliance: []
     });
+    const [energyHistory, setEnergyHistory] = useState([]);
 
+    // Fetch appliances from backend
+    const fetchAppliances = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appliances`);
+            if (res.ok) {
+                const data = await res.json();
+                setAppliancesInternal(data);
+            }
+        } catch (error) {
+            console.error("Error fetching appliances:", error);
+        }
+    };
+
+    // Fetch monthly billing summary from backend
     const fetchBillingSummary = async () => {
         try {
             const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appliances/usage/monthly`);
@@ -21,8 +36,8 @@ export const EnergyProvider = ({ children }) => {
                 const data = await res.json();
                 setBillingSummary({
                     ...data,
-                    grandTotalCost: data.grandTotalCost.toFixed(2),
-                    grandTotalEnergy: data.grandTotalEnergy.toFixed(2)
+                    grandTotalCost: parseFloat(data.grandTotalCost).toFixed(2),
+                    grandTotalEnergy: parseFloat(data.grandTotalEnergy).toFixed(4)
                 });
             }
         } catch (error) {
@@ -30,19 +45,20 @@ export const EnergyProvider = ({ children }) => {
         }
     };
 
+    // Load data on mount
     useEffect(() => {
-        // Initial fetches
         fetchAppliances();
         fetchBillingSummary();
     }, []);
 
+    // Wrapper around internal state setter that also syncs to backend
     const setAppliances = (newAppliancesOrFn) => {
         setAppliancesInternal(prev => {
             const nextAppliances = typeof newAppliancesOrFn === 'function'
                 ? newAppliancesOrFn(prev)
                 : newAppliancesOrFn;
 
-            // Sync meaningful changes to backend
+            // Sync changed appliances to backend
             nextAppliances.forEach(nextApp => {
                 const prevApp = prev.find(p => p.id === nextApp.id);
                 if (prevApp !== nextApp) {
@@ -51,8 +67,7 @@ export const EnergyProvider = ({ children }) => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(nextApp)
                     }).then(() => {
-                        // Refetch billing whenever an appliance toggles
-                        // since turning off seals a session bill calculation
+                        // Refetch billing whenever an appliance is toggled
                         fetchBillingSummary();
                     }).catch(error => console.error("Error updating appliance in backend:", error));
                 }
@@ -62,21 +77,17 @@ export const EnergyProvider = ({ children }) => {
         });
     };
 
-    // Derived/Aggregated History State
-    const [energyHistory, setEnergyHistory] = useState([]);
-
+    // MQTT: listen for simulator messages
     useEffect(() => {
         const handleMqttMessage = (topic, message) => {
             try {
                 const data = JSON.parse(message.toString());
 
-                // If it's the simulator sending fake appliance power directly
                 if (topic.includes('appliances')) {
                     const power = parseFloat(data.power);
                     if (!isNaN(power)) {
                         setCurrentPower(power);
 
-                        // Push into history ring-buffer
                         const now = new Date();
                         const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
 
@@ -85,7 +96,7 @@ export const EnergyProvider = ({ children }) => {
                                 time: timeStr,
                                 consumption: power,
                                 cost: (power * 0.8).toFixed(2),
-                                cumulative: power * 0.1 // Simulated cumulative fake math
+                                cumulative: power * 0.1
                             }];
                             return newData;
                         });
@@ -100,11 +111,11 @@ export const EnergyProvider = ({ children }) => {
         return () => mqttClient.off('message', handleMqttMessage);
     }, []);
 
-    // Also simulate background cumulative usage if the simulator isn't running
+    // Simulate background cumulative usage when simulator isn't running
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentPower(prev => {
-                const fluctuation = (Math.random() * 0.4) - 0.2; // slight fake organic movement
+            setCurrentPower(() => {
+                const fluctuation = (Math.random() * 0.4) - 0.2;
                 const activePower = appliances
                     .filter(a => a.status)
                     .reduce((sum, a) => sum + parseFloat(a.power), 0);
@@ -115,12 +126,13 @@ export const EnergyProvider = ({ children }) => {
         return () => clearInterval(interval);
     }, [appliances]);
 
-    // Context Value payload
+    // Context value — everything components need
     const value = {
         currentPower: currentPower.toFixed(2),
         appliances,
-        setAppliances, // Allow ApplianceControl to push changes
-        energyHistory
+        setAppliances,
+        energyHistory,
+        billingSummary
     };
 
     return (
