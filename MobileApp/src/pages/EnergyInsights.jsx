@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+import { EnergyContext } from '../context/EnergyContext';
 import {
     BarChart3,
     TrendingUp,
@@ -23,49 +25,57 @@ import {
 import './EnergyInsights.css';
 
 const EnergyInsights = () => {
+    const { currentPower, energyHistory, appliances } = useContext(EnergyContext);
+
+    // Historic mockup blending with live data for continuous metrics
     const weeklyData = [
         { day: 'Mon', consumption: 45, cost: 380 },
         { day: 'Tue', consumption: 52, cost: 440 },
         { day: 'Wed', consumption: 48, cost: 405 },
         { day: 'Thu', consumption: 55, cost: 465 },
         { day: 'Fri', consumption: 50, cost: 425 },
-        { day: 'Sat', consumption: 62, cost: 525 },
+        { day: 'Sat', consumption: Math.max(62, parseFloat(currentPower) * 10), cost: parseFloat(currentPower) * 58 },
         { day: 'Sun', consumption: 58, cost: 490 },
     ];
 
-    const hourlyData = [
+    // Map the live energy history directly onto the line chart if we have data points
+    const hourlyData = energyHistory.length > 5 ? energyHistory.map(h => ({
+        hour: h.time.substring(0, 5),
+        consumption: h.consumption
+    })) : [
         { hour: '00', consumption: 2.1 },
         { hour: '03', consumption: 1.8 },
         { hour: '06', consumption: 3.5 },
         { hour: '09', consumption: 4.8 },
-        { hour: '12', consumption: 5.2 },
+        { hour: '12', consumption: parseFloat(currentPower) || 5.2 },
         { hour: '15', consumption: 6.5 },
         { hour: '18', consumption: 8.2 },
         { hour: '21', consumption: 7.5 },
-        { hour: '23', consumption: 4.2 },
     ];
 
-    const applianceComparison = [
-        { appliance: 'AC', thisMonth: 850, lastMonth: 920 },
-        { appliance: 'Refrigerator', thisMonth: 320, lastMonth: 310 },
-        { appliance: 'Washing Machine', thisMonth: 180, lastMonth: 220 },
-        { appliance: 'Lighting', thisMonth: 150, lastMonth: 160 },
-        { appliance: 'TV', thisMonth: 120, lastMonth: 140 },
-        { appliance: 'Others', thisMonth: 280, lastMonth: 300 },
-    ];
+    // Compute appliance comparison dynamically from live power 
+    const applianceComparison = appliances.map(app => {
+        const thisMonthProj = app.status ? Math.round(parseFloat(app.power) * 120) : Math.round(parseFloat(app.power) * 30);
+        const base = app.type === 'AC' ? 850 : 200;
+        return {
+            appliance: app.name.replace(' Machine', ''),
+            thisMonth: thisMonthProj,
+            lastMonth: base
+        };
+    }).slice(0, 6);
 
     const insights = [
         {
-            title: 'Peak Usage Time',
-            value: '6 PM - 9 PM',
-            description: 'Your highest consumption period',
+            title: 'Current Power Draw',
+            value: `${currentPower} kW`,
+            description: 'Live sensor reading',
             trend: 'neutral',
             icon: Zap
         },
         {
-            title: 'Average Daily Usage',
-            value: '52.8 kWh',
-            description: '+8% from last week',
+            title: 'Active Appliances',
+            value: appliances.filter(a => a.status).length.toString(),
+            description: 'Currently consuming power',
             trend: 'up',
             icon: TrendingUp
         },

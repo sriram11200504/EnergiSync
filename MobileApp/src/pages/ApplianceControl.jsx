@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
+import { EnergyContext } from '../context/EnergyContext';
 import {
     Power,
     Wind,
@@ -18,7 +19,22 @@ import {
 } from 'lucide-react';
 import './ApplianceControl.css';
 import mqttClient from '../mqttService';
-import { useEffect } from 'react';
+
+const iconMap = {
+    'AC': Wind,
+    'Air Conditioner': Wind,
+    'Refrigerator': Refrigerator,
+    'Washing Machine': Waves,
+    'Lighting': Lightbulb,
+    'Smart Lights': Lightbulb,
+    'TV': Tv,
+    'Television': Tv,
+    'Ceiling Fan': Fan,
+    'Water Heater': ThermometerSun,
+    'Microwave': Microwave,
+    'Dishwasher': UtensilsCrossed,
+    'EV Charger': Zap
+};
 
 const ApplianceControl = () => {
     useEffect(() => {
@@ -26,110 +42,7 @@ const ApplianceControl = () => {
         window.mqttClient = mqttClient;
     }, []);
 
-    const [appliances, setAppliances] = useState([
-        {
-            id: 1,
-            name: 'Air Conditioner',
-            room: 'Living Room',
-            icon: Wind,
-            status: true,
-            power: '1.5 kW',
-            temperature: 24,
-            mode: 'Cool',
-            schedule: { enabled: false, time: '22:00' }
-        },
-        {
-            id: 2,
-            name: 'Refrigerator',
-            room: 'Kitchen',
-            icon: Refrigerator,
-            status: true,
-            power: '0.3 kW',
-            temperature: 4,
-            mode: 'Normal',
-            schedule: { enabled: false }
-        },
-        {
-            id: 3,
-            name: 'Washing Machine',
-            room: 'Utility Room',
-            icon: Waves,
-            status: true,
-            power: '0.8 kW',
-            cycle: 'Quick Wash',
-            timeLeft: '45 min',
-            schedule: { enabled: true, time: '22:00' }
-        },
-        {
-            id: 4,
-            name: 'Smart Lights',
-            room: 'Bedroom',
-            icon: Lightbulb,
-            status: false,
-            power: '0.05 kW',
-            brightness: 80,
-            schedule: { enabled: true, time: '18:00' }
-        },
-        {
-            id: 5,
-            name: 'Television',
-            room: 'Living Room',
-            icon: Tv,
-            status: false,
-            power: '0.2 kW',
-            schedule: { enabled: false }
-        },
-        {
-            id: 6,
-            name: 'Ceiling Fan',
-            room: 'Bedroom',
-            icon: Fan,
-            status: true,
-            power: '0.07 kW',
-            speed: 'Medium',
-            schedule: { enabled: false }
-        },
-        {
-            id: 7,
-            name: 'Water Heater',
-            room: 'Bathroom',
-            icon: ThermometerSun,
-            status: false,
-            power: '2.0 kW',
-            temperature: 60,
-            schedule: { enabled: true, time: '07:00' }
-        },
-        {
-            id: 8,
-            name: 'Microwave',
-            room: 'Kitchen',
-            icon: Microwave,
-            status: false,
-            power: '1.2 kW',
-            mode: 'Defrost',
-            schedule: { enabled: false }
-        },
-        {
-            id: 9,
-            name: 'Dishwasher',
-            room: 'Kitchen',
-            icon: UtensilsCrossed,
-            status: false,
-            power: '1.5 kW',
-            cycle: 'Eco',
-            schedule: { enabled: false }
-        },
-        {
-            id: 10,
-            name: 'EV Charger',
-            room: 'Garage',
-            icon: Zap,
-            status: false,
-            power: '7.2 kW',
-            mode: 'Fast Charge',
-            schedule: { enabled: true, time: '01:00' }
-        }
-    ]);
+    const { appliances, setAppliances } = useContext(EnergyContext);
 
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [selectedAppliance, setSelectedAppliance] = useState(null);
@@ -143,7 +56,8 @@ const ApplianceControl = () => {
                     const topic = `energysync/control/${app.name.toLowerCase().replace(' ', '_')}`;
                     const payload = JSON.stringify({
                         command: newStatus ? 'ON' : 'OFF',
-                        timestamp: new Date().toISOString()
+                        timestamp: new Date().toISOString(),
+                        enabled: newStatus
                     });
                     window.mqttClient.publish(topic, payload);
                     console.log(`📡 Sent command to ${topic}: ${payload}`);
@@ -221,7 +135,7 @@ const ApplianceControl = () => {
                     <div className="summary-content">
                         <p className="summary-label">Scheduled Tasks</p>
                         <h2 className="summary-value">
-                            {appliances.filter(app => app.schedule.enabled).length}
+                            {appliances.filter(app => app.schedule?.enabled).length}
                         </h2>
                     </div>
                 </div>
@@ -229,113 +143,116 @@ const ApplianceControl = () => {
 
             {/* Appliances Grid */}
             <div className="appliances-grid">
-                {appliances.map((appliance) => (
-                    <div key={appliance.id} className={`appliance-card card-glass ${appliance.status ? 'active' : ''}`}>
-                        <div className="appliance-card-header">
-                            <div className="appliance-card-icon" style={{
-                                backgroundColor: appliance.status
-                                    ? 'rgba(34, 197, 94, 0.1)'
-                                    : 'rgba(255, 255, 255, 0.05)'
-                            }}>
-                                <appliance.icon
-                                    size={28}
-                                    style={{ color: appliance.status ? 'var(--primary-green)' : 'var(--text-tertiary)' }}
-                                />
-                            </div>
-                            <div className="appliance-card-info">
-                                <h3>{appliance.name}</h3>
-                                <p className="text-secondary">{appliance.room}</p>
-                            </div>
-                            <button
-                                className={`power-toggle ${appliance.status ? 'on' : 'off'}`}
-                                onClick={() => toggleAppliance(appliance.id)}
-                            >
-                                <Power size={20} />
-                            </button>
-                        </div>
-
-                        <div className="appliance-card-body">
-                            <div className="appliance-detail">
-                                <span className="detail-label">Power</span>
-                                <span className="detail-value">{appliance.power}</span>
+                {appliances.map((appliance) => {
+                    const IconComponent = appliance.icon || iconMap[appliance.type] || iconMap[appliance.name] || Power;
+                    return (
+                        <div key={appliance.id} className={`appliance-card card-glass ${appliance.status ? 'active' : ''}`}>
+                            <div className="appliance-card-header">
+                                <div className="appliance-card-icon" style={{
+                                    backgroundColor: appliance.status
+                                        ? 'rgba(34, 197, 94, 0.1)'
+                                        : 'rgba(255, 255, 255, 0.05)'
+                                }}>
+                                    <IconComponent
+                                        size={28}
+                                        style={{ color: appliance.status ? 'var(--primary-green)' : 'var(--text-tertiary)' }}
+                                    />
+                                </div>
+                                <div className="appliance-card-info">
+                                    <h3>{appliance.name}</h3>
+                                    <p className="text-secondary">{appliance.room}</p>
+                                </div>
+                                <button
+                                    className={`power-toggle ${appliance.status ? 'on' : 'off'}`}
+                                    onClick={() => toggleAppliance(appliance.id)}
+                                >
+                                    <Power size={20} />
+                                </button>
                             </div>
 
-                            {appliance.temperature !== undefined && (
-                                <div className="temperature-control">
-                                    <span className="detail-label">Temperature</span>
-                                    <div className="temp-controls">
-                                        <button
-                                            className="btn btn-sm btn-ghost"
-                                            onClick={() => adjustTemperature(appliance.id, -1)}
-                                            disabled={!appliance.status}
-                                        >
-                                            -
-                                        </button>
-                                        <span className="temp-value">{appliance.temperature}°C</span>
-                                        <button
-                                            className="btn btn-sm btn-ghost"
-                                            onClick={() => adjustTemperature(appliance.id, 1)}
-                                            disabled={!appliance.status}
-                                        >
-                                            +
-                                        </button>
+                            <div className="appliance-card-body">
+                                <div className="appliance-detail">
+                                    <span className="detail-label">Power</span>
+                                    <span className="detail-value">{appliance.power}</span>
+                                </div>
+
+                                {appliance.temperature !== undefined && (
+                                    <div className="temperature-control">
+                                        <span className="detail-label">Temperature</span>
+                                        <div className="temp-controls">
+                                            <button
+                                                className="btn btn-sm btn-ghost"
+                                                onClick={() => adjustTemperature(appliance.id, -1)}
+                                                disabled={!appliance.status}
+                                            >
+                                                -
+                                            </button>
+                                            <span className="temp-value">{appliance.temperature}°C</span>
+                                            <button
+                                                className="btn btn-sm btn-ghost"
+                                                onClick={() => adjustTemperature(appliance.id, 1)}
+                                                disabled={!appliance.status}
+                                            >
+                                                +
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {appliance.brightness !== undefined && (
-                                <div className="brightness-control">
-                                    <span className="detail-label">Brightness</span>
-                                    <div className="brightness-slider">
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="100"
-                                            value={appliance.brightness}
-                                            onChange={(e) => adjustBrightness(appliance.id, parseInt(e.target.value))}
-                                            disabled={!appliance.status}
-                                            className="slider"
-                                        />
-                                        <span className="brightness-value">{appliance.brightness}%</span>
+                                {appliance.brightness !== undefined && (
+                                    <div className="brightness-control">
+                                        <span className="detail-label">Brightness</span>
+                                        <div className="brightness-slider">
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max="100"
+                                                value={appliance.brightness}
+                                                onChange={(e) => adjustBrightness(appliance.id, parseInt(e.target.value))}
+                                                disabled={!appliance.status}
+                                                className="slider"
+                                            />
+                                            <span className="brightness-value">{appliance.brightness}%</span>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {appliance.mode && (
-                                <div className="appliance-detail">
-                                    <span className="detail-label">Mode</span>
-                                    <span className="detail-value">{appliance.mode}</span>
-                                </div>
-                            )}
+                                {appliance.mode && (
+                                    <div className="appliance-detail">
+                                        <span className="detail-label">Mode</span>
+                                        <span className="detail-value">{appliance.mode}</span>
+                                    </div>
+                                )}
 
-                            {appliance.cycle && (
-                                <div className="appliance-detail">
-                                    <span className="detail-label">Cycle</span>
-                                    <span className="detail-value">{appliance.cycle}</span>
-                                </div>
-                            )}
+                                {appliance.cycle && (
+                                    <div className="appliance-detail">
+                                        <span className="detail-label">Cycle</span>
+                                        <span className="detail-value">{appliance.cycle}</span>
+                                    </div>
+                                )}
 
-                            {appliance.timeLeft && (
-                                <div className="appliance-detail">
-                                    <span className="detail-label">Time Left</span>
-                                    <span className="detail-value text-warning">{appliance.timeLeft}</span>
-                                </div>
-                            )}
+                                {appliance.timeLeft && (
+                                    <div className="appliance-detail">
+                                        <span className="detail-label">Time Left</span>
+                                        <span className="detail-value text-warning">{appliance.timeLeft}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="appliance-card-footer">
+                                <button
+                                    className="btn btn-sm btn-ghost"
+                                    onClick={() => openSchedule(appliance)}
+                                >
+                                    <Calendar size={16} />
+                                    {appliance.schedule?.enabled
+                                        ? `Scheduled: ${appliance.schedule?.time}`
+                                        : 'Schedule'}
+                                </button>
+                            </div>
                         </div>
-
-                        <div className="appliance-card-footer">
-                            <button
-                                className="btn btn-sm btn-ghost"
-                                onClick={() => openSchedule(appliance)}
-                            >
-                                <Calendar size={16} />
-                                {appliance.schedule.enabled
-                                    ? `Scheduled: ${appliance.schedule.time}`
-                                    : 'Schedule'}
-                            </button>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Schedule Modal */}

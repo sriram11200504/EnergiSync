@@ -1,8 +1,9 @@
 import mqtt from 'mqtt';
+import 'dotenv/config';
 
 // Connection config
-const URL = import.meta.env.VITE_BROKER_URL;
-const BROKER_URL = `${URL}/mqtt`;
+const URL = process.env.VITE_BROKER_URL || 'ws://127.0.0.1:1883';
+const BROKER_URL = `${URL}`;
 const TOPIC = 'energysync/appliances/simulator';
 
 console.log('🔌 Virtual Appliance Simulator starting...');
