@@ -42,7 +42,114 @@ const ApplianceControl = () => {
         window.mqttClient = mqttClient;
     }, []);
 
+<<<<<<< Updated upstream
     const { appliances, setAppliances } = useContext(EnergyContext);
+=======
+    const [appliances, setAppliances] = useState([
+        {
+            id: 1,
+            name: 'Air Conditioner',
+            room: 'Living Room',
+            icon: Wind,
+            status: true,
+            power: '1.5 kW',
+            temperature: 24,
+            mode: 'Cool',
+            schedule: { enabled: false, time: '22:00' }
+        },
+        {
+            id: 2,
+            name: 'Refrigerator',
+            room: 'Kitchen',
+            icon: Refrigerator,
+            status: true,
+            power: '0.3 kW',
+            temperature: 4,
+            mode: 'Normal',
+            schedule: { enabled: false }
+        },
+        {
+            id: 3,
+            name: 'Washing Machine',
+            room: 'Utility Room',
+            icon: Waves,
+            status: true,
+            power: '0.8 kW',
+            cycle: 'Quick Wash',
+            timeLeft: '45 min',
+            schedule: { enabled: true, time: '22:00' }
+        },
+        {
+            id: 4,
+            name: 'Smart Lights',
+            room: 'Bedroom',
+            icon: Lightbulb,
+            status: false,
+            power: '0.05 kW',
+            brightness: 80,
+            schedule: { enabled: true, time: '18:00' }
+        },
+        {
+            id: 5,
+            name: 'Television',
+            room: 'central block',
+            icon: Tv,
+            status: false,
+            power: '0.2 kW',
+            schedule: { enabled: false }
+        },
+        {
+            id: 6,
+            name: 'Ceiling Fan',
+            room: 'Bedroom',
+            icon: Fan,
+            status: true,
+            power: '0.07 kW',
+            speed: 'Medium',
+            schedule: { enabled: false }
+        },
+        {
+            id: 7,
+            name: 'Water Heater',
+            room: 'Bathroom',
+            icon: ThermometerSun,
+            status: false,
+            power: '2.0 kW',
+            temperature: 60,
+            schedule: { enabled: true, time: '07:00' }
+        },
+        {
+            id: 8,
+            name: 'Microwave',
+            room: 'Kitchen',
+            icon: Microwave,
+            status: false,
+            power: '1.2 kW',
+            mode: 'Defrost',
+            schedule: { enabled: false }
+        },
+        {
+            id: 9,
+            name: 'Dishwasher',
+            room: 'Kitchen',
+            icon: UtensilsCrossed,
+            status: false,
+            power: '1.5 kW',
+            cycle: 'Eco',
+            schedule: { enabled: false }
+        },
+        {
+            id: 10,
+            name: 'EV Charger',
+            room: 'Garage',
+            icon: Zap,
+            status: false,
+            power: '7.2 kW',
+            mode: 'Fast Charge',
+            schedule: { enabled: true, time: '01:00' }
+        }
+    ]);
+>>>>>>> Stashed changes
 
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [selectedAppliance, setSelectedAppliance] = useState(null);

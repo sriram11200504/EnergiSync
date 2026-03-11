@@ -2,7 +2,7 @@ import mqtt from 'mqtt';
 import 'dotenv/config';
 
 // Connection config
-const URL = process.env.VITE_BROKER_URL || 'ws://127.0.0.1:1883';
+const URL = process.env.VITE_BROKER_URL || 'wss://broker.hivemq.com:8884/mqtt';
 const BROKER_URL = `${URL}`;
 const TOPIC = 'energysync/appliances/simulator';
 
