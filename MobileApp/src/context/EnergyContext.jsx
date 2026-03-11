@@ -17,6 +17,16 @@ export const EnergyProvider = ({ children }) => {
     const [zones, setZones] = useState([]);
     const [devices, setDevices] = useState([]); // Dynamic IoT devices
 
+    // Carbon analytics state (from aggregation pipeline)
+    const [carbonData, setCarbonData] = useState({
+        totalEnergy: 0,
+        totalEmissions: 0,
+        co2Saved: 0,
+        treesEquivalent: 0,
+        byDevice: []
+    });
+    const [monthlyTrend, setMonthlyTrend] = useState([]);
+
     // Fetch equipment from backend
     const fetchEquipment = async () => {
         try {
@@ -70,6 +80,32 @@ export const EnergyProvider = ({ children }) => {
             }
         } catch (error) {
             console.error("Error fetching zones:", error);
+        }
+    };
+
+    // Fetch aggregated carbon footprint stats from backend
+    const fetchCarbonStats = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/carbon-stats`);
+            if (res.ok) {
+                const data = await res.json();
+                setCarbonData(data);
+            }
+        } catch (error) {
+            console.error('Error fetching carbon stats:', error);
+        }
+    };
+
+    // Fetch last-6-months trend for AreaChart
+    const fetchMonthlyTrend = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/monthly-trend`);
+            if (res.ok) {
+                const data = await res.json();
+                setMonthlyTrend(data);
+            }
+        } catch (error) {
+            console.error('Error fetching monthly trend:', error);
         }
     };
 
@@ -141,10 +177,22 @@ export const EnergyProvider = ({ children }) => {
         fetchBillingSummary();
         fetchZones();
         fetchDevices();
+        fetchCarbonStats();
+        fetchMonthlyTrend();
 
         // Refresh devices every 10s for new provisioning detection
-        const interval = setInterval(fetchDevices, 10000);
-        return () => clearInterval(interval);
+        const deviceInterval = setInterval(fetchDevices, 10000);
+
+        // Refresh carbon analytics every 60s
+        const carbonInterval = setInterval(() => {
+            fetchCarbonStats();
+            fetchMonthlyTrend();
+        }, 60000);
+
+        return () => {
+            clearInterval(deviceInterval);
+            clearInterval(carbonInterval);
+        };
     }, []);
 
     // Wrapper around internal state setter that also syncs to backend
@@ -234,7 +282,9 @@ export const EnergyProvider = ({ children }) => {
         zones,
         addZone,
         deleteZone,
-        devices
+        devices,
+        carbonData,
+        monthlyTrend
     };
 
     return (

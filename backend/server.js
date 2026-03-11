@@ -28,13 +28,14 @@ app.use('/api/equipment', require('./routes/equipment'));
 app.use('/api/devices', require('./routes/devices')); // New IoT Device endpoint
 app.use('/api/zones', require('./routes/zones'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // Initialize IoT MQTT Manager
 const mqttManager = require('./services/mqttManager');
 mqttManager.connect();
 
 // Sync existing devices on startup (Non-blocking)
-const tbService = require('./services/thingsboardService');
+// const tbService = require('./services/thingsboardService');
 const Device = require('./models/Device');
 const Equipment = require('./models/Equipment');
 

@@ -1,5 +1,5 @@
 const mqtt = require('mqtt');
-const tbService = require('./thingsboardService');
+// const tbService = require('./thingsboardService');
 const Device = require('../models/Device');
 
 class MQTTManager {

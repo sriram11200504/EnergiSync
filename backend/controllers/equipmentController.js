@@ -149,7 +149,7 @@ const getMonthlyUsage = async (req, res) => {
     }
 };
 
-const tbService = require('../services/thingsboardService');
+// const tbService = require('../services/thingsboardService');
 const Device = require('../models/Device');
 
 // Add new equipment
