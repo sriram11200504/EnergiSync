@@ -15,7 +15,6 @@ export const EnergyProvider = ({ children }) => {
     });
     const [energyHistory, setEnergyHistory] = useState([]);
     const [zones, setZones] = useState([]);
-    const [devices, setDevices] = useState([]); // Dynamic IoT devices
 
     // Fetch equipment from backend
     const fetchEquipment = async () => {
@@ -30,18 +29,6 @@ export const EnergyProvider = ({ children }) => {
         }
     };
 
-    // Fetch dynamic IoT devices from ThingsBoard-backed backend
-    const fetchDevices = async () => {
-        try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/devices`);
-            if (res.ok) {
-                const data = await res.json();
-                setDevices(data);
-            }
-        } catch (error) {
-            console.error("Error fetching IoT devices:", error);
-        }
-    };
 
     // Fetch monthly billing summary from backend
     const fetchBillingSummary = async () => {
@@ -140,11 +127,6 @@ export const EnergyProvider = ({ children }) => {
         fetchEquipment();
         fetchBillingSummary();
         fetchZones();
-        fetchDevices();
-
-        // Refresh devices every 10s for new provisioning detection
-        const interval = setInterval(fetchDevices, 10000);
-        return () => clearInterval(interval);
     }, []);
 
     // Wrapper around internal state setter that also syncs to backend
@@ -233,8 +215,7 @@ export const EnergyProvider = ({ children }) => {
         billingSummary,
         zones,
         addZone,
-        deleteZone,
-        devices
+        deleteZone
     };
 
     return (

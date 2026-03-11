@@ -158,3 +158,28 @@
     "timestamp": "2026-03-11T22:29:31.735Z",
     "enabled": true
 }
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:37:51.366Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:37:52.202Z",
+    "enabled": false
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:40:22.633Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:40:25.779Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:41:27.918Z",
+    "enabled": false
+}

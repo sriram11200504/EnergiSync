@@ -27,17 +27,15 @@ import {
 import './Dashboard.css';
 
 const Dashboard = () => {
-    const { currentPower, equipmentList, setEquipment, energyHistory, billingSummary, devices } = useContext(EnergyContext);
+    const { currentPower, equipmentList, setEquipment, energyHistory, billingSummary } = useContext(EnergyContext);
 
     // Fallback if no history yet
     const displayEnergyData = energyHistory.length > 0 ? energyHistory : [
         { time: '00:00', consumption: 0, cost: 0 }
     ];
 
-    // Calculate active equipment + active IoT devices
+    // Calculate active equipment
     const activeEquipmentCount = equipmentList.filter(eq => eq.status).length;
-    const activeDeviceCount = devices.filter(d => d.status === 'ON' || d.status === 'ONLINE').length;
-    const totalActiveCount = activeEquipmentCount + activeDeviceCount;
 
     // Prepare dynamic pie chart data
     const activeTotalPower = equipmentList.filter(eq => eq.status).reduce((sum, eq) => sum + parseFloat(eq.power), 0) || 1;

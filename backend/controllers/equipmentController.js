@@ -149,8 +149,7 @@ const getMonthlyUsage = async (req, res) => {
     }
 };
 
-const tbService = require('../services/thingsboardService');
-const Device = require('../models/Device');
+
 
 // Add new equipment
 const addEquipment = async (req, res) => {
@@ -173,27 +172,6 @@ const addEquipment = async (req, res) => {
 
         await newEquipment.save();
 
-        // 🚀 Automatic push to ThingsBoard
-        try {
-            console.log(`📡 Automatically provisioning ${name} in ThingsBoard...`);
-            const tbDevice = await tbService.createDevice(name, type);
-            const credentials = await tbService.getDeviceCredentials(tbDevice.id.id);
-            const accessToken = credentials.credentialsId;
-
-            const deviceMetadata = new Device({
-                name: name,
-                type: type,
-                tbId: tbDevice.id.id,
-                accessToken: accessToken,
-                status: 'OFF',
-                lastPower: Number(power)
-            });
-            await deviceMetadata.save();
-            console.log(`✅ ${name} automatically provisioned in ThingsBoard and Device inventory.`);
-        } catch (tbError) {
-            console.error(`⚠️ Equipment saved to DB, but ThingsBoard provisioning failed for ${name}:`, tbError.message);
-            // We don't fail the whole request since the primary DB save worked
-        }
 
         res.status(201).json(newEquipment);
     } catch (error) {
@@ -214,16 +192,7 @@ const deleteEquipment = async (req, res) => {
 
         const name = equipment.name;
 
-        // 1. Find and delete from TB metadata collection
-        const device = await Device.findOne({ name: name });
-        if (device && device.tbId) {
-            try {
-                await tbService.deleteDevice(device.tbId);
-            } catch (tbErr) {
-                console.warn(`⚠️ Could not delete TB device for ${name}:`, tbErr.message);
-            }
-            await Device.deleteOne({ _id: device._id });
-        }
+
 
         // 2. Delete usage history
         await EquipmentUsage.deleteMany({ equipmentId: Number(id) });
