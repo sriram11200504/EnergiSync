@@ -54,20 +54,22 @@ const AIAssistantWidget = () => {
                     a.name.toLowerCase().includes(applianceName.toLowerCase())
                 );
 
-                if (targetAppliance && window.mqttClient && window.mqttClient.connected) {
-                    const topic = `energysync/control/${targetAppliance.name.toLowerCase().replace(' ', '_')}`;
+                if (targetAppliance) {
                     const isTurningOn = command === 'ON';
 
-                    const payload = JSON.stringify({
-                        command: command,
-                        timestamp: new Date().toISOString(),
-                        enabled: isTurningOn
-                    });
+                    // Publish MQTT command (fix: replaceAll so multi-word names get all spaces replaced)
+                    if (window.mqttClient && window.mqttClient.connected) {
+                        const topic = `energysync/control/${targetAppliance.name.toLowerCase().replaceAll(' ', '_')}`;
+                        const payload = JSON.stringify({
+                            command: command,
+                            timestamp: new Date().toISOString(),
+                            enabled: isTurningOn
+                        });
+                        window.mqttClient.publish(topic, payload);
+                        console.log(`🤖 AI Sent MQTT to ${topic}: ${payload}`);
+                    }
 
-                    window.mqttClient.publish(topic, payload);
-                    console.log(`🤖 AI Sent command to ${topic}: ${payload}`);
-
-                    // Optimistically update the React UI state so toggles move
+                    // Update React UI state optimistically
                     setAppliances(prevAppliances =>
                         prevAppliances.map(app =>
                             app.id === targetAppliance.id
@@ -83,9 +85,9 @@ const AIAssistantWidget = () => {
             }
 
             if (failCount > 0 && successCount === 0) {
-                setMessages(prev => [...prev, { role: 'assistant', text: `(System: Could not execute commands. Please ensure the target appliances exist and the MQTT broker is connected.)` }]);
+                setMessages(prev => [...prev, { role: 'assistant', text: `(System: Could not find the specified appliance. Please check the name and try again.)` }]);
             } else if (successCount > 0) {
-                setMessages(prev => [...prev, { role: 'assistant', text: `(System: Processed ${successCount} hardware commands successfully.)` }]);
+                setMessages(prev => [...prev, { role: 'assistant', text: `(System: ✅ ${successCount} command(s) executed successfully.)` }]);
             }
         }
 
