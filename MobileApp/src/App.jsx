@@ -6,6 +6,7 @@ import TariffOptimization from './pages/TariffOptimization';
 import EnergyInsights from './pages/EnergyInsights';
 import CarbonFootprint from './pages/CarbonFootprint';
 import Billing from './pages/Billing';
+import EnergyTrade from './pages/EnergyTrade';
 import Settings from './pages/Settings';
 import AIAssistantWidget from './components/AIAssistantWidget';
 import { EnergyProvider } from './context/EnergyContext';
@@ -25,6 +26,7 @@ function App() {
               <Route path="/insights" element={<EnergyInsights />} />
               <Route path="/carbon" element={<CarbonFootprint />} />
               <Route path="/billing" element={<Billing />} />
+              <Route path="/trading" element={<EnergyTrade />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </main>

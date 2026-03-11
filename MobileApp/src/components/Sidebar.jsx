@@ -6,6 +6,7 @@ import {
     BarChart3,
     Leaf,
     Receipt,
+    ArrowLeftRight,
     Settings,
     Bolt
 } from 'lucide-react';
@@ -19,6 +20,7 @@ const Sidebar = () => {
         { path: '/insights', icon: BarChart3, label: 'Energy Insights' },
         { path: '/carbon', icon: Leaf, label: 'Carbon Footprint' },
         { path: '/billing', icon: Receipt, label: 'Billing' },
+        { path: '/trading', icon: ArrowLeftRight, label: 'Energy Trading' },
         { path: '/settings', icon: Settings, label: 'Settings' },
     ];
 
