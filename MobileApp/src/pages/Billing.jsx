@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+import { EnergyContext } from '../context/EnergyContext';
 import {
     Receipt,
     DollarSign,
@@ -24,31 +26,37 @@ import {
 import './Billing.css';
 
 const Billing = () => {
+    const { currentPower, billingSummary } = useContext(EnergyContext);
+
+    // Grab live values safely
+    const currentBillRaw = billingSummary?.grandTotalCost ? parseFloat(billingSummary.grandTotalCost) : 0;
+    const estimatedUnits = billingSummary?.grandTotalEnergy ? parseFloat(billingSummary.grandTotalEnergy) : 0;
+
     const monthlyBills = [
         { month: 'Jan', amount: 2400, units: 320 },
         { month: 'Feb', amount: 2200, units: 295 },
         { month: 'Mar', amount: 2600, units: 348 },
         { month: 'Apr', amount: 2800, units: 375 },
         { month: 'May', amount: 3200, units: 428 },
-        { month: 'Jun', amount: 2890, units: 387 },
+        { month: billingSummary?.month || 'Current', amount: currentBillRaw, units: estimatedUnits },
     ];
 
     const costBreakdown = [
-        { category: 'Energy Charges', amount: 1850, percentage: 64 },
-        { category: 'Fixed Charges', amount: 320, percentage: 11 },
-        { category: 'Taxes & Duties', amount: 520, percentage: 18 },
-        { category: 'Meter Rent', amount: 50, percentage: 2 },
-        { category: 'Others', amount: 150, percentage: 5 },
+        { category: 'Energy Charges', amount: Math.round(currentBillRaw * 0.64), percentage: 64 },
+        { category: 'Fixed Charges', amount: Math.round(currentBillRaw * 0.11), percentage: 11 },
+        { category: 'Taxes & Duties', amount: Math.round(currentBillRaw * 0.18), percentage: 18 },
+        { category: 'Meter Rent', amount: Math.round(currentBillRaw * 0.02), percentage: 2 },
+        { category: 'Others', amount: Math.round(currentBillRaw * 0.05), percentage: 5 },
     ];
 
     const billHistory = [
         {
-            month: 'June 2024',
-            dueDate: '15 Jul 2024',
-            amount: 2890,
-            units: 387,
+            month: billingSummary?.month || 'Current',
+            dueDate: '15 Next Month',
+            amount: currentBillRaw,
+            units: estimatedUnits,
             status: 'pending',
-            billNumber: 'BILL-2024-06-001'
+            billNumber: `BILL-${new Date().getFullYear()}-${new Date().getMonth() + 1}-001`
         },
         {
             month: 'May 2024',
@@ -80,12 +88,12 @@ const Billing = () => {
     ];
 
     const currentBill = billHistory[0];
-    const totalAmount = costBreakdown.reduce((sum, item) => sum + item.amount, 0);
+    const totalAmount = currentBillRaw;
 
     const projectedSavings = {
-        current: 2890,
-        optimized: 2450,
-        savings: 440,
+        current: currentBillRaw,
+        optimized: Math.round(currentBillRaw * 0.85),
+        savings: Math.round(currentBillRaw * 0.15),
         percentage: 15
     };
 

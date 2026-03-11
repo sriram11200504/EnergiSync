@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+import { EnergyContext } from '../context/EnergyContext';
 import {
     Leaf,
     TrendingDown,
@@ -27,29 +29,39 @@ import {
 import './CarbonFootprint.css';
 
 const CarbonFootprint = () => {
+    const { currentPower, appliances } = useContext(EnergyContext);
+
+    // Compute live footprint projection (e.g., 0.4 kg CO2 per kWh)
+    const currentEmissions = Math.max(10, Math.round(parseFloat(currentPower) * 120 * 0.4)) || 138;
+    const targetEmissions = 100;
+    const progress = Math.min(100, ((targetEmissions / currentEmissions) * 100)).toFixed(0);
+
     const monthlyEmissions = [
         { month: 'Jan', emissions: 185, saved: 25 },
         { month: 'Feb', emissions: 172, saved: 32 },
         { month: 'Mar', emissions: 165, saved: 38 },
         { month: 'Apr', emissions: 158, saved: 45 },
         { month: 'May', emissions: 142, saved: 52 },
-        { month: 'Jun', emissions: 138, saved: 58 },
+        { month: 'Jun', emissions: currentEmissions, saved: Math.round(currentEmissions * 0.3) },
     ];
 
-    const emissionsBySource = [
-        { name: 'Air Conditioner', value: 45, color: 'hsl(210, 100%, 56%)' },
-        { name: 'Refrigerator', value: 18, color: 'hsl(142, 71%, 45%)' },
-        { name: 'Washing Machine', value: 12, color: 'hsl(25, 95%, 53%)' },
-        { name: 'Lighting', value: 10, color: 'hsl(45, 93%, 58%)' },
-        { name: 'Others', value: 15, color: 'hsl(271, 76%, 53%)' },
-    ];
+    const activeTotalPower = appliances.reduce((sum, app) => sum + (app.status ? parseFloat(app.power) : 0), 0) || 1;
+    const colors = ['hsl(210, 100%, 56%)', 'hsl(142, 71%, 45%)', 'hsl(25, 95%, 53%)', 'hsl(45, 93%, 58%)', 'hsl(271, 76%, 53%)'];
+
+    const emissionsBySource = appliances.filter(a => a.status).length > 0
+        ? appliances.filter(a => a.status).map((app, i) => ({
+            name: app.name.replace(' Machine', ''),
+            value: Math.round((parseFloat(app.power) / activeTotalPower) * currentEmissions),
+            color: colors[i % colors.length]
+        }))
+        : [{ name: 'Standby Power', value: currentEmissions, color: 'hsl(0,0%,30%)' }];
 
     const environmentalImpact = [
-        { category: 'Energy Efficiency', value: 78 },
+        { category: 'Energy Efficiency', value: currentPower < 3 ? 92 : 65 },
         { category: 'Renewable Usage', value: 45 },
         { category: 'Peak Avoidance', value: 82 },
         { category: 'Smart Scheduling', value: 68 },
-        { category: 'Conservation', value: 72 },
+        { category: 'Conservation', value: currentPower < 2 ? 88 : 50 },
     ];
 
     const achievements = [
@@ -57,7 +69,7 @@ const CarbonFootprint = () => {
             title: 'Carbon Warrior',
             description: 'Reduced emissions by 30%',
             icon: Award,
-            earned: true,
+            earned: progress >= 100,
             color: 'hsl(142, 71%, 45%)'
         },
         {
@@ -86,37 +98,33 @@ const CarbonFootprint = () => {
     const stats = [
         {
             label: 'Total CO₂ Saved',
-            value: '250 kg',
+            value: `${Math.round(currentEmissions * 0.3)} kg`,
             description: 'This month',
             icon: Leaf,
             color: 'var(--success)'
         },
         {
             label: 'Trees Equivalent',
-            value: '15',
+            value: Math.max(1, Math.round(currentEmissions * 0.3 / 10)).toString(), // approx 1 tree per 10kg
             description: 'Trees planted',
             icon: TreePine,
             color: 'var(--primary-green)'
         },
         {
             label: 'Car Miles Offset',
-            value: '620 km',
+            value: `${Math.round(currentEmissions * 2.5)} km`,
             description: 'Driving distance',
             icon: Car,
             color: 'var(--secondary-blue)'
         },
         {
             label: 'Homes Powered',
-            value: '2.5',
+            value: (currentEmissions * 0.05).toFixed(1),
             description: 'For one day',
             icon: Home,
             color: 'var(--accent-orange)'
         },
     ];
-
-    const currentEmissions = 138;
-    const targetEmissions = 100;
-    const progress = ((targetEmissions / currentEmissions) * 100).toFixed(0);
 
     return (
         <div className="carbon-footprint">
