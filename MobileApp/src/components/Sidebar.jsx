@@ -54,7 +54,7 @@ const Sidebar = () => {
                 ))}
             </nav>
 
-            <div className="sidebar-footer">
+            {/* <div className="sidebar-footer">
                 <div className="user-info glass">
                     <div className="user-avatar">
                         <span>U</span>
@@ -64,7 +64,7 @@ const Sidebar = () => {
                         <p className="user-email">user@energysync.com</p>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </aside >
     );
 };

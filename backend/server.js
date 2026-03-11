@@ -12,11 +12,23 @@ app.use(express.json());
 
 // MongoDB Connection
 // The user should supply this URI in the .env file
-const mongoURI = process.env.MONGO_URI
+const mongoURI = process.env.MONGO_URI;
 
-mongoose.connect(mongoURI)
+const connectWithRetry = () => {
+    mongoose.connect(mongoURI, {
+        serverSelectionTimeoutMS: 30000, // 30s for Atlas cold-start
+        socketTimeoutMS: 45000,
+    })
     .then(() => console.log('✅ Connected to MongoDB Backend Database'))
-    .catch((err) => console.error('❌ MongoDB connection error:', err));
+    .catch((err) => {
+        console.error('❌ MongoDB connection error:', err.message);
+        console.log('🔄 Retrying connection in 5 seconds...');
+        setTimeout(connectWithRetry, 5000);
+    });
+};
+
+connectWithRetry();
+
 
 // Basic Health Check Route
 app.get('/api/health', (req, res) => {
@@ -33,25 +45,6 @@ app.use('/api/analytics', require('./routes/analytics'));
 const mqttManager = require('./services/mqttManager');
 mqttManager.connect();
 
-// Sync existing devices on startup (Non-blocking)
-// const tbService = require('./services/thingsboardService');
-const Device = require('./models/Device');
-const Equipment = require('./models/Equipment');
-
-const syncOnStartup = async () => {
-    try {
-        const equipmentCount = await Equipment.countDocuments();
-        const deviceCount = await Device.countDocuments();
-        if (equipmentCount > deviceCount) {
-            console.log('🔄 Startup: Detected unsynced legacy equipment. Running background sync...');
-            // In a real prod app, you might trigger a worker or a service method
-            // For now, the user has the sync script, but we'll log the recommendation
-        }
-    } catch (err) {
-        console.error('❌ Startup Sync Check Failed:', err.message);
-    }
-};
-syncOnStartup();
 
 
 app.listen(PORT, () => {

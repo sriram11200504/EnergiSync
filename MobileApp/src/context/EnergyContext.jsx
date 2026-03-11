@@ -15,7 +15,6 @@ export const EnergyProvider = ({ children }) => {
     });
     const [energyHistory, setEnergyHistory] = useState([]);
     const [zones, setZones] = useState([]);
-    const [devices, setDevices] = useState([]); // Dynamic IoT devices
 
     // Carbon analytics state (from aggregation pipeline)
     const [carbonData, setCarbonData] = useState({
@@ -164,12 +163,8 @@ export const EnergyProvider = ({ children }) => {
         fetchEquipment();
         fetchBillingSummary();
         fetchZones();
-        fetchDevices();
         fetchCarbonStats();
         fetchMonthlyTrend();
-
-        // Refresh devices every 10s for new provisioning detection
-        const deviceInterval = setInterval(fetchDevices, 10000);
 
         // Refresh carbon analytics every 60s
         const carbonInterval = setInterval(() => {
@@ -178,7 +173,6 @@ export const EnergyProvider = ({ children }) => {
         }, 60000);
 
         return () => {
-            clearInterval(deviceInterval);
             clearInterval(carbonInterval);
         };
     }, []);
@@ -270,7 +264,6 @@ export const EnergyProvider = ({ children }) => {
         zones,
         addZone,
         deleteZone,
-        devices,
         carbonData,
         monthlyTrend
     };
