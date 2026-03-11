@@ -1,0 +1,49 @@
+
+
+1. Context / Background
+Today, consumers juggle multiple apps — one for smart meters, another for specific appliances (AC, washing machines, etc.), and others for home automation. This creates fragmented data, inconvenience, and lack of actionable insights. At the same time, electricity tariffs are becoming dynamic and with ToD tariffs across consumer categories, users seek more control over costs, energy efficiency, and sustainability.
+
+A unified Smart Metering Super App can consolidate smart meter data, appliance-level insights, and home automation controls into a single user-friendly platform — empowering consumers to monitor, control, and optimize their energy consumption in real time.
+
+2. Problem Statement
+The challenge is to design and develop a single integrated platform that combines smart metering data with connected appliance management, enabling consumers to:
+
+Monitor real-time energy usage.
+Control appliances (turn ON/OFF, schedule operations).
+Optimize consumption using time-of-day tariffs and smart recommendations.
+Gain visibility on energy savings and carbon footprint.
+3. Objective
+To create a scalable, user-centric digital platform that:
+
+Unifies smart metering data and appliance-level insights.
+Enables appliance control (remote ON/OFF, scheduling).
+Integrates with dynamic tariff structures for cost optimization.
+Provides personalized energy-saving insights and carbon footprint tracking (optional).
+Ensures a seamless and engaging user experience.
+4. Requirements
+The platform must satisfy the following requirements:
+
+Web & Mobile application with intuitive UI/UX.
+Smart meter & IoT integration for real-time monitoring.
+Appliance ON/OFF control + scheduling & automation.
+Dynamic tariff optimization engine for running appliances at lowest-cost times.
+Dashboards: energy usage, bills, carbon footprint (optional).
+Billing simulation (estimated monthly costs, savings projections).
+Scalable architecture to handle millions of users and appliances.
+Voice assistant integration (optional for PoC).
+5. Desired Outcome
+A Proof of Concept (PoC)/prototype model demonstrating:
+
+Unified dashboard with smart meter + appliance data.
+Appliance ON/OFF + scheduling controls.
+Dynamic tariff–linked recommendations (e.g., “Run washing machine after 10 PM to save ₹20”).
+Energy usage insights, savings visualization, and carbon footprint display (optional).
+This PoC can be scaled into a consumer-facing Super App integrating with DISCOMs, appliance OEMs, and home automation platforms.
+6. Success Metrics
+Key metrics to evaluate success:
+
+Adoption: Users onboard appliances & smart meter within 5 minutes.
+Convenience: At least 3 appliances controllable via app in PoC/prototype.
+Optimization: Demonstrated cost savings of 10–15% via dynamic/ToD tariff optimization.
+Reliability: Uptime ≥ 99% for real-time controls.
+Sustainability: Visible CO₂ footprint reduction per household

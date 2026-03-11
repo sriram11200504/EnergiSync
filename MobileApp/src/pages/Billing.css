@@ -1,0 +1,418 @@
+.billing {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Current Bill Section */
+.current-bill-section {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.current-bill-card {
+    padding: var(--spacing-xl);
+}
+
+.bill-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.bill-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(34, 197, 94, 0.1);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-green);
+    flex-shrink: 0;
+}
+
+.bill-info {
+    flex: 1;
+}
+
+.bill-info h3 {
+    margin: 0;
+    margin-bottom: var(--spacing-xs);
+}
+
+.bill-info p {
+    margin: 0;
+}
+
+.bill-amount {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+}
+
+.bill-amount .currency {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.bill-amount .amount {
+    font-size: 4rem;
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+}
+
+.bill-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.detail-value {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.bill-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+/* Savings Card */
+.savings-card {
+    padding: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.savings-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    color: var(--success);
+}
+
+.savings-header h3 {
+    margin: 0;
+}
+
+.savings-comparison {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.comparison-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    text-align: center;
+}
+
+.comparison-label {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.comparison-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.arrow-icon {
+    font-size: 1.5rem;
+    color: var(--text-tertiary);
+}
+
+.savings-amount {
+    padding: var(--spacing-lg);
+    background: rgba(34, 197, 94, 0.1);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.savings-badge {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    color: var(--success);
+}
+
+.savings-badge h2 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.savings-badge p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* Chart Section */
+.chart-section {
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+}
+
+.section-header h3 {
+    margin: 0;
+}
+
+.chart-legend {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-sm);
+}
+
+/* Breakdown Section */
+.breakdown-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.breakdown-chart,
+.breakdown-details {
+    padding: var(--spacing-xl);
+}
+
+.breakdown-chart h3,
+.breakdown-details h3 {
+    margin-bottom: var(--spacing-lg);
+}
+
+.breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.breakdown-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.breakdown-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.breakdown-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.breakdown-percentage {
+    font-size: 0.75rem;
+}
+
+.breakdown-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.breakdown-fill {
+    height: 100%;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-full);
+    transition: width var(--transition-slow);
+}
+
+.breakdown-amount {
+    font-weight: 700;
+    font-size: 1.125rem;
+    text-align: right;
+}
+
+.breakdown-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+    border-top: 2px solid var(--border-color);
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.total-amount {
+    font-size: 1.5rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* History Section */
+.history-section {
+    padding: var(--spacing-xl);
+}
+
+.history-table {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 1.2fr 1.5fr 0.8fr 0.8fr 1fr 1fr;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.5fr 0.8fr 0.8fr 1fr 1fr;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    align-items: center;
+    transition: all var(--transition-base);
+}
+
+.table-row:hover {
+    background: var(--bg-hover);
+    transform: translateX(4px);
+}
+
+.table-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cell-label {
+    display: none;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cell-value {
+    font-size: 0.875rem;
+}
+
+.table-cell.actions {
+    justify-content: flex-end;
+}
+
+@media (max-width: 1200px) {
+    .current-bill-section {
+        grid-template-columns: 1fr;
+    }
+
+    .breakdown-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .bill-amount .amount {
+        font-size: 3rem;
+    }
+
+    .bill-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .savings-comparison {
+        flex-direction: column;
+    }
+
+    .arrow-icon {
+        transform: rotate(90deg);
+    }
+
+    .table-header {
+        display: none;
+    }
+
+    .table-row {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .cell-label {
+        display: block;
+    }
+
+    .table-cell {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table-cell.actions {
+        justify-content: flex-start;
+    }
+}
