@@ -1,0 +1,7 @@
+stack: Error: The GROQ_API_KEY environment variable is missing or empty; either provide it, or instantiate the Groq client with an apiKey option, like new Groq({ apiKey: 'My API Key' }).
+    at new Groq (file:///D:/GIT/EnergiSync/backend/node_modules/groq-sdk/client.mjs:57:19)
+    at file:///D:/GIT/EnergiSync/backend/services/aiService.js:3:14
+    at ModuleJob.run (node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:661:26)
+    at async importModuleDynamicallyWrapper (node:internal/vm/module:525:15)
+message: The GROQ_API_KEY environment variable is missing or empty; either provide it, or instantiate the Groq client with an apiKey option, like new Groq({ apiKey: 'My API Key' }).

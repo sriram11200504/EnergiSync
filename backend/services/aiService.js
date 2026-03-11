@@ -1,6 +1,6 @@
-const Groq = require('groq-sdk');
+import Groq from 'groq-sdk';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || 'your_groq_api_key_here' });
 
 // Use the current recommended model
 const MODEL = 'llama-3.3-70b-versatile';
@@ -8,7 +8,7 @@ const MODEL = 'llama-3.3-70b-versatile';
 /**
  * Generate a one-shot energy saving insight
  */
-const generateEnergyInsights = async (currentPower, appliances) => {
+export const generateEnergyInsights = async (currentPower, appliances) => {
     if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'your_groq_api_key_here') {
         return "Please add your GROQ_API_KEY to backend/.env to activate the AI assistant.";
     }
@@ -44,7 +44,7 @@ const generateEnergyInsights = async (currentPower, appliances) => {
 /**
  * Chat with AI, with optional function-calling to control appliances
  */
-const chatWithAi = async (message, currentPower, appliances) => {
+export const chatWithAi = async (message, currentPower, appliances) => {
     if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'your_groq_api_key_here') {
         return { text: "Please add your GROQ_API_KEY to backend/.env." };
     }
@@ -105,4 +105,3 @@ For all other questions, answer helpfully and concisely in plain text.`;
     }
 };
 
-module.exports = { generateEnergyInsights, chatWithAi };

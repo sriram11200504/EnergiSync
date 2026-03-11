@@ -1,10 +1,10 @@
-const { generateEnergyInsights, chatWithAi } = require('../services/aiService');
+import { generateEnergyInsights, chatWithAi } from '../services/aiService.js';
 
 /**
  * POST /api/ai/chat
  * Body: { message, currentPower, appliances }
  */
-const chat = async (req, res) => {
+export const chat = async (req, res) => {
     try {
         const { message, currentPower, appliances } = req.body;
 
@@ -29,7 +29,7 @@ const chat = async (req, res) => {
  * GET /api/ai/insight?currentPower=1.5
  * Query: currentPower, appliances (JSON string)
  */
-const insight = async (req, res) => {
+export const insight = async (req, res) => {
     try {
         const { currentPower } = req.query;
         // appliances passed from frontend context as JSON string
@@ -46,4 +46,3 @@ const insight = async (req, res) => {
     }
 };
 
-module.exports = { chat, insight };
