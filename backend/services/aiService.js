@@ -77,8 +77,11 @@ For all other questions, answer helpfully and concisely in plain text.`;
 
         const rawText = response.choices[0]?.message?.content || '';
 
+        // Strip markdown code fences if the model wraps its JSON (e.g. ```json ... ```)
+        const cleanedText = rawText.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim();
+
         // Try to parse as an action JSON response
-        const jsonMatch = rawText.match(/\{[\s\S]*"action"\s*:\s*"controlAppliances"[\s\S]*\}/);
+        const jsonMatch = cleanedText.match(/\{[\s\S]*"action"\s*:\s*"controlAppliances"[\s\S]*\}/);
         if (jsonMatch) {
             try {
                 const actionData = JSON.parse(jsonMatch[0]);
@@ -90,7 +93,7 @@ For all other questions, answer helpfully and concisely in plain text.`;
                     }
                 };
             } catch (parseError) {
-                // Not valid JSON, treat as plain text
+                console.warn("AI returned action-like text but JSON parsing failed:", parseError.message);
             }
         }
 
