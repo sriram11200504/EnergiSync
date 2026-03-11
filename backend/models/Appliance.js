@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const applianceSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true },
@@ -13,4 +13,4 @@ const applianceSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Appliance', applianceSchema);
+export default mongoose.model('Appliance', applianceSchema);

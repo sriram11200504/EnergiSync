@@ -1,7 +1,8 @@
-require('dotenv').config(); // Load variables from backend/.env (or root if configured)
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+import dotenv from 'dotenv';
+dotenv.config(); // Load variables from backend/.env (or root if configured)
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,8 +25,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // Import Routes
-app.use('/api/appliances', require('./routes/appliances'));
-app.use('/api/ai', require('./routes/ai'));
+import applianceRoutes from './routes/appliances.js';
+import aiRoutes from './routes/ai.js';
+app.use('/api/appliances', applianceRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.listen(PORT, () => {
     console.log(`🚀 EnergiSync Backend API Server running on port ${PORT}`);

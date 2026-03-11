@@ -1,5 +1,5 @@
-const Appliance = require('../models/Appliance');
-const ApplianceUsage = require('../models/ApplianceUsage');
+import Appliance from '../models/Appliance.js';
+import ApplianceUsage from '../models/ApplianceUsage.js';
 
 // Static rate for demonstration
 const ENERGY_RATE_PER_KWH = 0.15;
@@ -13,7 +13,7 @@ const initialAppliances = [
 ];
 
 // Get all appliances and seed if empty
-const getAppliances = async (req, res) => {
+export const getAppliances = async (req, res) => {
     try {
         let appliances = await Appliance.find();
 
@@ -38,7 +38,7 @@ const getAppliances = async (req, res) => {
 };
 
 // Update an appliance AND track usage
-const updateAppliance = async (req, res) => {
+export const updateAppliance = async (req, res) => {
     try {
         const { id } = req.params;
         const updates = req.body;
@@ -100,7 +100,7 @@ const updateAppliance = async (req, res) => {
 };
 
 // GET /api/appliances/usage/monthly
-const getMonthlyUsage = async (req, res) => {
+export const getMonthlyUsage = async (req, res) => {
     try {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -170,10 +170,4 @@ const getMonthlyUsage = async (req, res) => {
         console.error('Error calculating monthly usage:', error);
         res.status(500).json({ message: 'Failed to calculate monthly usage' });
     }
-};
-
-module.exports = {
-    getAppliances,
-    updateAppliance,
-    getMonthlyUsage
 };

@@ -2,6 +2,8 @@ import mqtt from 'mqtt';
 
 // Connection config
 const BROKER_URL = 'wss://broker.hivemq.com:8884/mqtt';
+// const URL = import.meta.env.VITE_BROKER_URL;
+// const BROKER_URL = `${URL}/mqtt`
 const PULSE_TOPIC = 'energysync/appliances/simulator';
 const CONTROL_TOPIC = 'energysync/control/#'; // Listen to ALL control commands
 
