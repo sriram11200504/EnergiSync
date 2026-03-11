@@ -6,32 +6,47 @@ export const EnergyContext = createContext();
 export const EnergyProvider = ({ children }) => {
     // Global State
     const [currentPower, setCurrentPower] = useState(0); // Live total kW
-    const [appliances, setAppliancesInternal] = useState([]);
+    const [equipmentList, setEquipmentInternal] = useState([]);
     const [billingSummary, setBillingSummary] = useState({
         month: '',
         grandTotalEnergy: 0,
         grandTotalCost: 0,
-        summaryByAppliance: []
+        summaryByEquipment: []
     });
     const [energyHistory, setEnergyHistory] = useState([]);
+    const [zones, setZones] = useState([]);
+    const [devices, setDevices] = useState([]); // Dynamic IoT devices
 
-    // Fetch appliances from backend
-    const fetchAppliances = async () => {
+    // Fetch equipment from backend
+    const fetchEquipment = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appliances`);
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/equipment`);
             if (res.ok) {
                 const data = await res.json();
-                setAppliancesInternal(data);
+                setEquipmentInternal(data);
             }
         } catch (error) {
-            console.error("Error fetching appliances:", error);
+            console.error("Error fetching equipment:", error);
+        }
+    };
+
+    // Fetch dynamic IoT devices from ThingsBoard-backed backend
+    const fetchDevices = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/devices`);
+            if (res.ok) {
+                const data = await res.json();
+                setDevices(data);
+            }
+        } catch (error) {
+            console.error("Error fetching IoT devices:", error);
         }
     };
 
     // Fetch monthly billing summary from backend
     const fetchBillingSummary = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appliances/usage/monthly`);
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/equipment/usage/monthly`);
             if (res.ok) {
                 const data = await res.json();
                 setBillingSummary({
@@ -45,35 +60,116 @@ export const EnergyProvider = ({ children }) => {
         }
     };
 
+    // Fetch zones from backend
+    const fetchZones = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/zones`);
+            if (res.ok) {
+                const data = await res.json();
+                setZones(data);
+            }
+        } catch (error) {
+            console.error("Error fetching zones:", error);
+        }
+    };
+
+    const addZone = async (zoneData) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/zones`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(zoneData)
+            });
+            if (res.ok) {
+                const newZone = await res.json();
+                setZones(prev => [...prev, newZone]);
+                return newZone;
+            }
+        } catch (error) {
+            console.error("Error adding zone:", error);
+        }
+    };
+
+    const deleteZone = async (id) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/zones/${id}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                setZones(prev => prev.filter(z => z._id !== id));
+            }
+        } catch (error) {
+            console.error("Error deleting zone:", error);
+        }
+    };
+
+    const addEquipment = async (equipmentData) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/equipment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(equipmentData)
+            });
+            if (res.ok) {
+                const newEq = await res.json();
+                setEquipmentInternal(prev => [...prev, newEq]);
+                return newEq;
+            }
+        } catch (error) {
+            console.error("Error adding equipment:", error);
+        }
+    };
+
+    const deleteEquipment = async (id) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/equipment/${id}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                setEquipmentInternal(prev => prev.filter(eq => eq.id !== id));
+                // Also refetch billing to show updated numbers
+                fetchBillingSummary();
+            }
+        } catch (error) {
+            console.error("Error deleting equipment:", error);
+        }
+    };
+
     // Load data on mount
     useEffect(() => {
-        fetchAppliances();
+        fetchEquipment();
         fetchBillingSummary();
+        fetchZones();
+        fetchDevices();
+
+        // Refresh devices every 10s for new provisioning detection
+        const interval = setInterval(fetchDevices, 10000);
+        return () => clearInterval(interval);
     }, []);
 
     // Wrapper around internal state setter that also syncs to backend
-    const setAppliances = (newAppliancesOrFn) => {
-        setAppliancesInternal(prev => {
-            const nextAppliances = typeof newAppliancesOrFn === 'function'
-                ? newAppliancesOrFn(prev)
-                : newAppliancesOrFn;
+    const setEquipment = (newEquipmentOrFn) => {
+        setEquipmentInternal(prev => {
+            const nextEquipment = typeof newEquipmentOrFn === 'function'
+                ? newEquipmentOrFn(prev)
+                : newEquipmentOrFn;
 
-            // Sync changed appliances to backend
-            nextAppliances.forEach(nextApp => {
-                const prevApp = prev.find(p => p.id === nextApp.id);
-                if (prevApp !== nextApp) {
-                    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/appliances/${nextApp.id}`, {
+            // Sync changed equipment to backend
+            nextEquipment.forEach(nextEq => {
+                const prevEq = prev.find(p => p.id === nextEq.id);
+                if (prevEq && prevEq !== nextEq) {
+                    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/equipment/${nextEq.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(nextApp)
+                        body: JSON.stringify(nextEq)
                     }).then(() => {
-                        // Refetch billing whenever an appliance is toggled
+                        // Refetch billing whenever equipment is toggled
                         fetchBillingSummary();
-                    }).catch(error => console.error("Error updating appliance in backend:", error));
+                    }).catch(error => console.error("Error updating equipment in backend:", error));
                 }
             });
 
-            return nextAppliances;
+            return nextEquipment;
         });
     };
 
@@ -83,7 +179,7 @@ export const EnergyProvider = ({ children }) => {
             try {
                 const data = JSON.parse(message.toString());
 
-                if (topic.includes('appliances')) {
+                if (topic.includes('equipment')) {
                     const power = parseFloat(data.power);
                     if (!isNaN(power)) {
                         setCurrentPower(power);
@@ -116,7 +212,7 @@ export const EnergyProvider = ({ children }) => {
         const interval = setInterval(() => {
             setCurrentPower(() => {
                 const fluctuation = (Math.random() * 0.4) - 0.2;
-                const activePower = appliances
+                const activePower = equipmentList
                     .filter(a => a.status)
                     .reduce((sum, a) => sum + parseFloat(a.power), 0);
 
@@ -124,15 +220,21 @@ export const EnergyProvider = ({ children }) => {
             });
         }, 3000);
         return () => clearInterval(interval);
-    }, [appliances]);
+    }, [equipmentList]);
 
     // Context value — everything components need
     const value = {
         currentPower: currentPower.toFixed(2),
-        appliances,
-        setAppliances,
+        equipmentList,
+        setEquipment,
+        addEquipment,
+        deleteEquipment,
         energyHistory,
-        billingSummary
+        billingSummary,
+        zones,
+        addZone,
+        deleteZone,
+        devices
     };
 
     return (
@@ -141,3 +243,4 @@ export const EnergyProvider = ({ children }) => {
         </EnergyContext.Provider>
     );
 };
+

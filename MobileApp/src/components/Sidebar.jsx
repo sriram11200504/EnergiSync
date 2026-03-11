@@ -14,7 +14,7 @@ import './Sidebar.css';
 const Sidebar = () => {
     const navItems = [
         { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-        { path: '/appliances', icon: Zap, label: 'Appliances' },
+        { path: '/equipment', icon: Zap, label: 'Equipment' },
         { path: '/tariff', icon: TrendingDown, label: 'Tariff Optimizer' },
         { path: '/insights', icon: BarChart3, label: 'Energy Insights' },
         { path: '/carbon', icon: Leaf, label: 'Carbon Footprint' },
@@ -63,7 +63,7 @@ const Sidebar = () => {
                     </div>
                 </div>
             </div>
-        </aside>
+        </aside >
     );
 };
 

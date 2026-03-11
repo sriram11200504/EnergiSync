@@ -26,7 +26,7 @@ import {
 import './Billing.css';
 
 const Billing = () => {
-    const { currentPower, billingSummary } = useContext(EnergyContext);
+    const { billingSummary } = useContext(EnergyContext);
 
     // Grab live values safely
     const currentBillRaw = billingSummary?.grandTotalCost ? parseFloat(billingSummary.grandTotalCost) : 0;

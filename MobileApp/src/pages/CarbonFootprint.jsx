@@ -29,7 +29,7 @@ import {
 import './CarbonFootprint.css';
 
 const CarbonFootprint = () => {
-    const { currentPower, appliances } = useContext(EnergyContext);
+    const { currentPower, equipmentList } = useContext(EnergyContext);
 
     // Compute live footprint projection (e.g., 0.4 kg CO2 per kWh)
     const currentEmissions = Math.max(10, Math.round(parseFloat(currentPower) * 120 * 0.4)) || 138;
@@ -45,13 +45,13 @@ const CarbonFootprint = () => {
         { month: 'Jun', emissions: currentEmissions, saved: Math.round(currentEmissions * 0.3) },
     ];
 
-    const activeTotalPower = appliances.reduce((sum, app) => sum + (app.status ? parseFloat(app.power) : 0), 0) || 1;
     const colors = ['hsl(210, 100%, 56%)', 'hsl(142, 71%, 45%)', 'hsl(25, 95%, 53%)', 'hsl(45, 93%, 58%)', 'hsl(271, 76%, 53%)'];
 
-    const emissionsBySource = appliances.filter(a => a.status).length > 0
-        ? appliances.filter(a => a.status).map((app, i) => ({
-            name: app.name.replace(' Machine', ''),
-            value: Math.round((parseFloat(app.power) / activeTotalPower) * currentEmissions),
+    const emissionsBySource = equipmentList.filter(a => a.status).length > 0
+        ? equipmentList.filter(a => a.status).map((eq, i) => ({
+            name: eq.name,
+            value: parseFloat(eq.power),
+            emissions: (parseFloat(eq.power) * 0.4).toFixed(2), // Assuming 0.4 is EMISSION_FACTOR
             color: colors[i % colors.length]
         }))
         : [{ name: 'Standby Power', value: currentEmissions, color: 'hsl(0,0%,30%)' }];
@@ -327,7 +327,7 @@ const CarbonFootprint = () => {
                 <div className="tips-list">
                     <div className="tip-item">
                         <Leaf size={20} />
-                        <p>Use appliances during off-peak hours to reduce strain on the grid and lower emissions</p>
+                        <p>Use equipment during off-peak hours to reduce strain on the grid and lower emissions</p>
                     </div>
                     <div className="tip-item">
                         <TrendingDown size={20} />

@@ -1,0 +1,160 @@
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:08:13.212Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:08:30.412Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:09:10.313Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:09:15.979Z",
+    "enabled": false
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:19:35.533Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:19:36.616Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:19:46.599Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:19:52.483Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:19:53.633Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:20:14.582Z",
+    "enabled": false
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:20:43.549Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:20:56.165Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:21:05.365Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:21:14.632Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:21:21.433Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:21:29.169Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:21:38.517Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:22:20.100Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:24:10.951Z",
+    "enabled": false
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:24:15.800Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:24:42.433Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:24:46.183Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:24:46.784Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:25:57.684Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:26:02.199Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:26:10.467Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:26:33.300Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:26:47.705Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:27:12.117Z",
+    "enabled": true
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:28:26.251Z",
+    "enabled": true
+}
+{
+    "command": "OFF",
+    "timestamp": "2026-03-11T22:28:42.068Z",
+    "enabled": false
+}
+{
+    "command": "ON",
+    "timestamp": "2026-03-11T22:29:31.735Z",
+    "enabled": true
+}

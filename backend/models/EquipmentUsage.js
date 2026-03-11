@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
-const applianceUsageSchema = new mongoose.Schema({
-    applianceId: {
+const equipmentUsageSchema = new mongoose.Schema({
+    equipmentId: {
         type: Number,
         required: true,
-        ref: 'Appliance' // Keeping number ref to match the Appliance custom id logic
+        ref: 'Equipment' // Keeping number ref to match the Equipment custom id logic
     },
     startTime: {
         type: Date,
@@ -29,4 +29,4 @@ const applianceUsageSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('ApplianceUsage', applianceUsageSchema);
+module.exports = mongoose.model('EquipmentUsage', equipmentUsageSchema);

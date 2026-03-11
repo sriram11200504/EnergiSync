@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
 
-const applianceSchema = new mongoose.Schema({
+const equipmentSchema = new mongoose.Schema({
     id: { type: Number, required: true, unique: true },
     name: { type: String, required: true },
-    room: { type: String, required: true },
+    zone: { type: String, required: true },
     status: { type: Boolean, default: false },
     power: { type: Number, required: true }, // Power consumption in kW when ON
     type: { type: String, required: true },
@@ -13,4 +13,4 @@ const applianceSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Appliance', applianceSchema);
+module.exports = mongoose.model('Equipment', equipmentSchema);

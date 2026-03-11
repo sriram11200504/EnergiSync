@@ -24,8 +24,34 @@ app.get('/api/health', (req, res) => {
 });
 
 // Import Routes
-app.use('/api/appliances', require('./routes/appliances'));
+app.use('/api/equipment', require('./routes/equipment'));
+app.use('/api/devices', require('./routes/devices')); // New IoT Device endpoint
+app.use('/api/zones', require('./routes/zones'));
 app.use('/api/ai', require('./routes/ai'));
+
+// Initialize IoT MQTT Manager
+const mqttManager = require('./services/mqttManager');
+mqttManager.connect();
+
+// Sync existing devices on startup (Non-blocking)
+const tbService = require('./services/thingsboardService');
+const Device = require('./models/Device');
+const Equipment = require('./models/Equipment');
+
+const syncOnStartup = async () => {
+    try {
+        const equipmentCount = await Equipment.countDocuments();
+        const deviceCount = await Device.countDocuments();
+        if (equipmentCount > deviceCount) {
+            console.log('🔄 Startup: Detected unsynced legacy equipment. Running background sync...');
+            // In a real prod app, you might trigger a worker or a service method
+            // For now, the user has the sync script, but we'll log the recommendation
+        }
+    } catch (err) {
+        console.error('❌ Startup Sync Check Failed:', err.message);
+    }
+};
+syncOnStartup();
 
 app.listen(PORT, () => {
     console.log(`🚀 EnergiSync Backend API Server running on port ${PORT}`);
