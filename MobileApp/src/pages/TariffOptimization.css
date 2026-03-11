@@ -1,351 +1,228 @@
 .tariff-optimization {
+    padding-bottom: var(--spacing-2xl);
     animation: fadeIn 0.5s ease-out;
 }
 
-/* Savings Summary */
-.savings-summary {
-    margin-bottom: var(--spacing-xl);
-}
-
-.summary-card-large {
-    padding: var(--spacing-xl);
-}
-
-.summary-header {
+/* Live Status Pill */
+.live-status-pill {
     display: flex;
     align-items: center;
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-xl);
-}
-
-.summary-icon-large {
-    width: 72px;
-    height: 72px;
-    background: rgba(34, 197, 94, 0.1);
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--success);
-}
-
-.summary-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
-.summary-amount {
-    display: flex;
-    align-items: baseline;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-xl);
-}
-
-.currency {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-}
-
-.amount {
-    font-size: 4rem;
-    font-weight: 800;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
-}
-
-.period {
-    font-size: 1.25rem;
-    color: var(--text-tertiary);
-}
-
-.summary-breakdown {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--spacing-lg);
-    padding-top: var(--spacing-lg);
-    border-top: 1px solid var(--border-color);
-}
-
-.breakdown-item {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-}
-
-.breakdown-label {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.breakdown-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-/* Chart Section */
-.chart-section {
-    margin-bottom: var(--spacing-xl);
-    padding: var(--spacing-xl);
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-lg);
-    flex-wrap: wrap;
     gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
 }
 
-.section-header h3 {
-    margin: 0;
+.pulse-icon {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-full);
+    box-shadow: 0 0 10px currentColor;
+    animation: pulse 2s infinite;
+}
+
+.live-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+}
+
+.live-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.live-type {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+/* Savings Summary Overlay Styles */
+.summary-card-large {
+    background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.1), transparent 40%),
+        var(--bg-card-glass);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.summary-amount .amount {
+    background: linear-gradient(135deg, #fff 0%, var(--primary-green) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+/* Chart Grid */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.chart-section {
+    padding: var(--spacing-lg);
+    height: 380px;
 }
 
 .tariff-legend {
     display: flex;
-    gap: var(--spacing-lg);
-    flex-wrap: wrap;
+    gap: var(--spacing-md);
 }
 
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+.dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
 }
 
-.legend-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: var(--radius-full);
+.off-peak {
+    background: hsl(142, 71%, 45%);
 }
 
-/* Recommendations */
-.recommendations-section {
-    margin-bottom: var(--spacing-xl);
+.normal {
+    background: hsl(45, 93%, 58%);
 }
 
+.peak {
+    background: hsl(0, 84%, 60%);
+}
+
+/* Recommendations Grid */
 .recommendations-grid {
-    display: grid;
-    gap: var(--spacing-lg);
-    margin-top: var(--spacing-lg);
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 .recommendation-card {
-    padding: var(--spacing-xl);
-    position: relative;
-    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.recommendation-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: var(--gradient-primary);
+.recommendation-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.recommendation-card.priority-high::before {
-    background: linear-gradient(135deg, hsl(0, 84%, 60%) 0%, hsl(25, 95%, 53%) 100%);
-}
-
-.recommendation-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--spacing-lg);
-    gap: var(--spacing-md);
-}
-
-.recommendation-title {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-}
-
-.recommendation-title h4 {
-    margin: 0;
-    font-size: 1.25rem;
+.recommendation-card.scheduled {
+    border-color: var(--primary-green);
+    background: rgba(34, 197, 94, 0.05);
 }
 
 .priority-badge {
-    align-self: flex-start;
-}
-
-.savings-badge {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: rgba(34, 197, 94, 0.1);
-    color: var(--success);
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 0.875rem;
-    white-space: nowrap;
-}
-
-.recommendation-body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
-}
-
-.time-comparison {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: var(--spacing-lg);
-    align-items: center;
-    padding: var(--spacing-lg);
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-md);
-}
-
-.time-block {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    align-items: center;
-    text-align: center;
-}
-
-.time-label {
-    font-size: 0.75rem;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 800;
     letter-spacing: 0.5px;
 }
 
-.time-value {
+.priority-high .priority-badge {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.priority-medium .priority-badge {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.success-badge {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
-    font-size: 1.5rem;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--primary-green);
+    color: #fff;
+    border-radius: 20px;
+    font-size: 0.75rem;
     font-weight: 700;
 }
 
-.cost-value {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--text-secondary);
+/* Time Comparison Layout */
+.arrow-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 }
 
-.time-block.suggested .time-value {
-    color: var(--success);
-}
-
-.arrow {
-    font-size: 2rem;
+.arrow-icon {
     color: var(--text-tertiary);
 }
 
-.recommendation-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: var(--spacing-lg);
-    border-top: 1px solid var(--border-color);
-    gap: var(--spacing-md);
-    flex-wrap: wrap;
+.savings-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--primary-green);
+    background: rgba(34, 197, 94, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
 }
 
-.savings-info {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    color: var(--text-secondary);
+.btn-success-glass {
+    background: rgba(34, 197, 94, 0.2);
+    color: #fff;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    padding: 6px 16px;
+    border-radius: 8px;
     font-size: 0.875rem;
-}
-
-.recommendation-actions {
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
     display: flex;
-    gap: var(--spacing-sm);
+    align-items: center;
+    gap: 6px;
 }
 
-/* Info Banner */
-.info-banner {
-    display: flex;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-xl);
-    background: rgba(59, 130, 246, 0.05);
-    border: 1px solid rgba(59, 130, 246, 0.2);
+.btn-success-glass:hover {
+    background: var(--primary-green);
 }
 
-.info-banner svg {
-    flex-shrink: 0;
-    color: var(--info);
+.toast-notification {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    bottom: 0px;
+    background: var(--primary-green);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px;
+    animation: slideUp 0.3s ease-out;
 }
 
-.info-content h4 {
-    margin: 0;
-    margin-bottom: var(--spacing-sm);
-    color: var(--info);
-}
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
 
-.info-content p {
-    margin: 0;
-    color: var(--text-secondary);
-    line-height: 1.6;
+    to {
+        transform: translateY(0);
+    }
 }
 
 @media (max-width: 1024px) {
-    .time-comparison {
+    .chart-grid {
         grid-template-columns: 1fr;
-        gap: var(--spacing-md);
-    }
-
-    .arrow {
-        transform: rotate(90deg);
     }
 }
 
 @media (max-width: 768px) {
-    .summary-amount {
+    .page-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: var(--spacing-md);
     }
 
-    .amount {
+    .summary-amount .amount {
         font-size: 3rem;
-    }
-
-    .summary-breakdown {
-        grid-template-columns: 1fr;
-    }
-
-    .tariff-legend {
-        flex-direction: column;
-    }
-
-    .recommendation-header {
-        flex-direction: column;
-    }
-
-    .savings-badge {
-        align-self: flex-start;
-    }
-
-    .recommendation-footer {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .recommendation-actions {
-        width: 100%;
-    }
-
-    .recommendation-actions .btn {
-        flex: 1;
-    }
-
-    .info-banner {
-        flex-direction: column;
     }
 }

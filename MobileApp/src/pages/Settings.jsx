@@ -9,17 +9,18 @@ import {
 } from 'lucide-react';
 import UserManagement from '../components/UserManagement';
 import AppearanceSettings from '../components/AppearanceSettings';
+import IoTConnectionSettings from '../components/IoTConnectionSettings';
 import './Settings.css';
 
 const Settings = () => {
-    const [activeSection, setActiveSection] = useState('users');
+    const [activeSection, setActiveSection] = useState('iot');
 
     const settingsSections = [
+        { id: 'iot', label: 'IoT Connection', icon: Globe, component: IoTConnectionSettings },
         { id: 'users', label: 'Users', icon: Users, component: UserManagement },
         { id: 'appearance', label: 'Appearance', icon: Palette, component: AppearanceSettings },
         { id: 'notifications', label: 'Notifications', icon: Bell, component: null },
         { id: 'security', label: 'Security', icon: Shield, component: null },
-        { id: 'language', label: 'Language', icon: Globe, component: null },
     ];
 
     const ActiveComponent = settingsSections.find(s => s.id === activeSection)?.component;
