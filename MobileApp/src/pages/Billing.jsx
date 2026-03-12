@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { EnergyContext } from '../context/EnergyContext';
+import { useState } from 'react';
 import {
     Receipt,
     DollarSign,
@@ -26,6 +27,8 @@ import {
 import './Billing.css';
 
 const Billing = () => {
+    const [showQR, setShowQR] = useState(false);
+
     const { billingSummary } = useContext(EnergyContext);
 
     // Grab live values safely
@@ -89,6 +92,7 @@ const Billing = () => {
 
     const currentBill = billHistory[0];
     const totalAmount = currentBillRaw;
+    const UPI = `upi://pay?pa=lokesh@oksbi&pn=Lokesh&am=${totalAmount}&cu=INR`;
 
     const projectedSavings = {
         current: currentBillRaw,
@@ -98,6 +102,7 @@ const Billing = () => {
     };
 
     return (
+        <>
         <div className="billing">
             <div className="page-header">
                 <div>
@@ -141,7 +146,7 @@ const Billing = () => {
                     </div>
 
                     <div className="bill-actions">
-                        <button className="btn btn-primary btn-lg">
+                        <button className="btn btn-primary btn-lg" onClick={() => setShowQR(true)}>
                             <CreditCard size={20} />
                             Pay Now
                         </button>
@@ -346,6 +351,54 @@ const Billing = () => {
                 </div>
             </div>
         </div>
+
+            {/* ── QR Payment Modal ── */}
+            {showQR && (
+                <div className="qr-modal-overlay" onClick={() => setShowQR(false)}>
+                    <div className="qr-modal card-glass" onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="qr-modal-header">
+                            <div className="qr-modal-title">
+                                <CreditCard size={22} />
+                                <span>Scan &amp; Pay via UPI</span>
+                            </div>
+                            <button className="qr-close-btn" onClick={() => setShowQR(false)}>✕</button>
+                        </div>
+
+                        {/* Amount badge */}
+                        <div className="qr-amount-badge">
+                            <span className="qr-amount-label">Total Due</span>
+                            <span className="qr-amount-value">₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                        </div>
+
+                        {/* QR Code — generated via free QR API, no extra package needed */}
+                        <div className="qr-code-wrapper">
+                            <img
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(UPI)}&ecc=H&margin=8`}
+                                alt="UPI QR Code"
+                                width={220}
+                                height={220}
+                                style={{ display: 'block', borderRadius: '4px' }}
+                            />
+                        </div>
+
+                        {/* UPI ID */}
+                        <p className="qr-upi-id">UPI ID: <strong>lokesh@oksbi</strong></p>
+
+                        {/* Steps */}
+                        <ol className="qr-steps">
+                            <li>Open any UPI app (GPay, PhonePe, Paytm…)</li>
+                            <li>Tap <strong>Scan QR</strong> and point your camera</li>
+                            <li>Confirm the amount and pay</li>
+                        </ol>
+
+                        <button className="btn btn-secondary qr-cancel-btn" onClick={() => setShowQR(false)}>
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 
