@@ -59,11 +59,12 @@ Current live power draw: ${currentPower} kW.
 Equipment:
 ${equipmentListStr}
 
-If the user asks to control an equipment (including requests for a delay like "after 5 seconds"), respond ONLY with a JSON object in this exact format:
-{"action": "controlEquipment", "actions": [{"equipmentName": "AC", "command": "ON", "delay": 5}]}
+If the user asks to control an equipment (including setting temperature, speed, or intensity), respond ONLY with a JSON object in this exact format:
+{"action": "controlEquipment", "actions": [{"equipmentName": "AC", "command": "ON", "newValue": 20, "delay": 5}]}
 
+- "command" can be "ON", "OFF", or "SET".
+- "newValue" is the numerical value for temperature, speed (1-5), or intensity (0-100).
 - "delay" is optional and should be in seconds.
-- Use multiple items in the "actions" array for multiple commands.
 - For all other questions, answer helpfully and concisely in plain text.`;
 
         const response = await groq.chat.completions.create({
@@ -110,4 +111,40 @@ If the user asks to control an equipment (including requests for a delay like "a
     }
 };
 
-module.exports = { generateEnergyInsights, chatWithAi };
+/**
+ * Generate specific optimization advice for the Tariff Optimizer
+ */
+const generateOptimizationAdvice = async (equipment) => {
+    if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'your_groq_api_key_here') {
+        return "Please add your GROQ_API_KEY to activate AI optimizations.";
+    }
+
+    try {
+        const equipmentSummary = equipment
+            .map(e => `- ${e.name} (${e.power}W) in ${e.zone}. Status: ${e.status ? 'ON' : 'OFF'}`)
+            .join('\n');
+
+        const response = await groq.chat.completions.create({
+            model: MODEL,
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are an Expert Smart Energy Consultant. Analyze the provided equipment list and give 3 precise, actionable bullet points to optimize energy costs using time-of-day tariffs (Peak: 9-12 and 18-21, Off-Peak: 22-05). Be specific about which appliances to shift.'
+                },
+                {
+                    role: 'user',
+                    content: `Here is the current equipment configuration:\n${equipmentSummary}\nProvide optimization advice.`
+                }
+            ],
+            max_tokens: 400,
+            temperature: 0.7
+        });
+
+        return response.choices[0]?.message?.content || "No advice available at the moment.";
+    } catch (error) {
+        console.error("Groq AI Advice Error:", error.message);
+        return "Unable to generate optimization strategies right now.";
+    }
+};
+
+module.exports = { generateEnergyInsights, chatWithAi, generateOptimizationAdvice };

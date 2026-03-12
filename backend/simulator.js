@@ -23,9 +23,8 @@ client.on('connect', () => {
         try {
             const dynamicDevices = await Equipment.find();
 
-            dynamicDevices.forEach(device => {
+            for (const device of dynamicDevices) {
                 // Determine if device is ON based on DB status
-                // We could randomize, but reflecting DB actual status is more accurate
                 const isON = device.status === true;
 
                 // Base power from DB
@@ -44,20 +43,34 @@ client.on('connect', () => {
                     device: device.name,
                     state: isON ? 'ON' : 'OFF',
                     power: Math.round(currentPower),
+                    value: device.value, // Start with current DB value
                     timestamp: new Date().toISOString()
                 };
 
-                // Add temperature logic for specific devices
-                if (device.name.toLowerCase().includes('ac')) {
-                    payload.temperature = isON ? (22 + (Math.random() * 2)) : 26;
-                    payload.temperature = Number(payload.temperature.toFixed(1));
-                } else if (device.name.toLowerCase().includes('refrigerator')) {
-                    payload.temperature = isON ? (2 + (Math.random() * 2)) : 5;
-                    payload.temperature = Number(payload.temperature.toFixed(1));
-                } else if (device.name.toLowerCase().includes('water heater')) {
-                    payload.temperature = isON ? (55 + (Math.random() * 5)) : 40;
-                    payload.temperature = Number(payload.temperature.toFixed(1));
+                // Dynamic value logic
+                if (isON) {
+                    if (device.type === 'Cooling' && device.maxScale) {
+                        // Fluctuating temperature around the set point
+                        let newValue = device.value + (Math.random() - 0.5) * 1;
+                        payload.value = Number(Math.min(device.maxScale, Math.max(device.minScale, newValue)).toFixed(1));
+                    } else if (device.type === 'Lighting' && device.maxScale) {
+                        // Lights fluctuate slightly or stay steady
+                        let newValue = device.value + Math.round((Math.random() - 0.5) * 5);
+                        payload.value = Math.min(device.maxScale, Math.max(device.minScale, newValue));
+                    } else if (device.type === 'Ventilation' && device.maxScale) {
+                        // Fans fluctuate speeds slightly
+                        if (Math.random() > 0.8) {
+                            let newValue = device.value + (Math.random() > 0.5 ? 1 : -1);
+                            payload.value = Math.min(device.maxScale, Math.max(device.minScale, newValue));
+                        }
+                    }
+                } else {
+                    // Turn values off or to standby
+                    if (device.type === 'Lighting') payload.value = 0;
                 }
+
+                // Update the database with the new simulated value so UI can show it
+                await Equipment.findByIdAndUpdate(device._id, { $set: { value: payload.value } });
 
                 // Publish to dynamic topic
                 const topic = `energysync/devices/${device.name}`;
@@ -70,7 +83,7 @@ client.on('connect', () => {
                         console.log(`[${topic}] published: ${message}`);
                     }
                 });
-            });
+            }
         } catch (err) {
             console.error('Error fetching devices from DB:', err);
         }
