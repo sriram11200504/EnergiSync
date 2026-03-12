@@ -342,6 +342,63 @@
     text-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
+/* Scale Controls */
+.scale-control-group {
+    margin-top: 1.2rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.scale-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.current-val {
+    color: var(--secondary-blue);
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0, 242, 254, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.scale-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    outline: none;
+    cursor: pointer;
+}
+
+.scale-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--secondary-blue);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+    transition: all 0.2s ease;
+}
+
+.scale-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.type-select-hint {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+}
+
 @media (max-width: 768px) {
     .header-content {
         margin-bottom: var(--spacing-md);
@@ -498,6 +555,7 @@
     background: rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
 }
+
 .delete-btn {
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.2);

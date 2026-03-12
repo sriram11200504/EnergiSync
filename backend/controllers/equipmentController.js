@@ -206,7 +206,6 @@ const deleteEquipment = async (req, res) => {
     }
 };
 
-// GET /api/equipment/optimization/recommendations
 const getTariffRecommendations = async (req, res) => {
     try {
         const usageData = await EquipmentUsage.find();
@@ -219,8 +218,12 @@ const getTariffRecommendations = async (req, res) => {
         const shiftableAppliances = ['Washing Machine', 'Dishwasher', 'EV Charger', 'Water Heater'];
 
         equipment.forEach(eq => {
+            const eqId = Number(eq.id);
             const isShiftable = shiftableAppliances.includes(eq.name);
-            const eqUsage = usageData.filter(u => u.equipmentId === eq.id);
+
+            // Filter usage for this specific equipment
+            const eqUsage = usageData.filter(u => Number(u.equipmentId) === eqId);
+
             const peakUsage = eqUsage.filter(u => {
                 const hour = new Date(u.startTime).getHours();
                 return peakHours.includes(hour);
@@ -228,32 +231,31 @@ const getTariffRecommendations = async (req, res) => {
 
             if (peakUsage.length > 0) {
                 // Real usage-based recommendation
-                const currentCost = peakUsage.reduce((sum, u) => sum + u.cost, 0);
-                const avgHours = peakUsage.reduce((sum, u) => sum + u.durationHours, 0) / peakUsage.length;
-                const optimizedRate = 4.0;
-                const optimizedCost = (eq.power * avgHours * peakUsage.length / 1000) * (optimizedRate / (ENERGY_RATE_PER_KWH * 10)); // Normalized
+                const avgHours = peakUsage.reduce((sum, u) => sum + (u.durationHours || 0), 0) / peakUsage.length;
+                const peakRate = 8.5; // Use standard peak rate
+                const offPeakRate = 4.0;
 
-                // Using a more realistic savings calculation
-                const savingsPerSession = (eq.power / 1000) * avgHours * (ENERGY_RATE_PER_KWH * 10 - 4.0);
+                const currentCostPerSession = (eq.power / 1000) * avgHours * peakRate;
+                const optimizedCostPerSession = (eq.power / 1000) * avgHours * offPeakRate;
+                const savingsPerSession = currentCostPerSession - optimizedCostPerSession;
                 const totalSavings = savingsPerSession * peakUsage.length;
 
                 if (totalSavings > 1) {
                     recommendations.push({
-                        id: eq.id,
+                        id: eqId,
                         appliance: eq.name,
                         currentTime: "Peak Window",
                         suggestedTime: "22:00 - 05:00",
                         recommendedTime: "22:00",
-                        currentCost: parseFloat(((eq.power / 1000) * avgHours * ENERGY_RATE_PER_KWH * 10).toFixed(2)),
-                        optimizedCost: parseFloat(((eq.power / 1000) * avgHours * 4.0).toFixed(2)),
+                        currentCost: parseFloat(currentCostPerSession.toFixed(2)),
+                        optimizedCost: parseFloat(optimizedCostPerSession.toFixed(2)),
                         savings: parseFloat(totalSavings.toFixed(2)),
                         priority: totalSavings > 15 ? 'high' : 'medium'
                     });
                 }
             } else if (isShiftable && eq.status === false) {
                 // Predictive recommendation for high power devices not yet used in peak
-                // Assuming use during peak (Peak Rate: 8.5)
-                const hypotheticalDuration = 1;
+                const hypotheticalDuration = 1.5; // Assume 1.5h use
                 const peakRate = 8.5;
                 const offPeakRate = 4.0;
                 const currentCost = (eq.power / 1000) * hypotheticalDuration * peakRate;
@@ -262,7 +264,7 @@ const getTariffRecommendations = async (req, res) => {
 
                 if (savings > 2) {
                     recommendations.push({
-                        id: eq.id,
+                        id: eqId,
                         appliance: eq.name,
                         currentTime: "Peak Window (Suggested)",
                         suggestedTime: "Off-Peak Window",
@@ -278,7 +280,6 @@ const getTariffRecommendations = async (req, res) => {
 
         // Sort by savings descending
         recommendations.sort((a, b) => b.savings - a.savings);
-
         res.status(200).json(recommendations);
     } catch (error) {
         console.error('Error fetching tariff recommendations:', error);

@@ -45,8 +45,7 @@ const EquipmentControl = () => {
     const [newEquipment, setNewEquipment] = useState({
         name: '',
         zone: '',
-        power: '',
-        type: 'Compute'
+        templateId: 'compute'
     });
 
     // Derive unique zones for filtering from both backend zones and equipment
@@ -65,12 +64,49 @@ const EquipmentControl = () => {
         setNewZone({ name: '', description: '' });
         setShowZoneModal(false);
     };
+    // Equipment Templates
+    const EQUIPMENT_TEMPLATES = [
+        { id: 'ac', name: 'Air Conditioner', type: 'Cooling', power: 2500, minScale: 16, maxScale: 30, unit: '°C', icon: <ThermometerSun size={24} /> },
+        { id: 'fan', name: 'Ceiling Fan', type: 'Ventilation', power: 75, minScale: 1, maxScale: 5, unit: 'Level', icon: <Fan size={24} /> },
+        { id: 'light', name: 'Smart Lighting', type: 'Lighting', power: 100, minScale: 0, maxScale: 100, unit: '%', icon: <Lightbulb size={24} /> },
+        { id: 'appliance', name: 'General Appliance', type: 'Appliance', power: 500, minScale: null, maxScale: null, unit: '', icon: <Zap size={24} /> },
+        { id: 'compute', name: 'Server/Workstation', type: 'Compute', power: 1000, minScale: null, maxScale: null, unit: '', icon: <Settings size={24} /> }
+    ];
 
     const handleAddEquipment = async (e) => {
         e.preventDefault();
-        await addEquipment(newEquipment);
-        setNewEquipment({ name: '', zone: '', power: '', type: 'Compute' });
+        const template = EQUIPMENT_TEMPLATES.find(t => t.id === newEquipment.templateId);
+        const finalEquipment = {
+            ...newEquipment,
+            name: newEquipment.name || template.name,
+            power: template.power,
+            type: template.type,
+            minScale: template.minScale,
+            maxScale: template.maxScale,
+            unit: template.unit,
+            value: template.minScale || 0
+        };
+        await addEquipment(finalEquipment);
+        setNewEquipment({ name: '', zone: '', templateId: 'compute' });
         setShowEquipmentModal(false);
+    };
+
+    const handleScaleUpdate = (id, newValue) => {
+        setEquipment(equipmentList.map(eq => {
+            if (eq.id === id) {
+                if (window.mqttClient && window.mqttClient.connected) {
+                    const topic = `energysync/control/${eq.name.toLowerCase().replaceAll(' ', '_')}`;
+                    const payload = JSON.stringify({
+                        command: 'SET',
+                        value: newValue,
+                        timestamp: new Date().toISOString()
+                    });
+                    window.mqttClient.publish(topic, payload);
+                }
+                return { ...eq, value: newValue };
+            }
+            return eq;
+        }));
     };
 
     const toggleEquipment = (id) => {
@@ -82,10 +118,10 @@ const EquipmentControl = () => {
                     const payload = JSON.stringify({
                         command: newStatus ? 'ON' : 'OFF',
                         timestamp: new Date().toISOString(),
-                        enabled: newStatus
+                        enabled: newStatus,
+                        value: eq.value
                     });
                     window.mqttClient.publish(topic, payload);
-                    console.log(`📡 Sent command to ${topic}: ${payload} `);
                 }
                 return { ...eq, status: newStatus };
             }
@@ -93,7 +129,15 @@ const EquipmentControl = () => {
         }));
     };
 
-    // Removed adjustTemperature, adjustBrightness, openSchedule functions as per diff
+    const getIconForType = (type) => {
+        switch (type) {
+            case 'Cooling': return <ThermometerSun size={24} />;
+            case 'Ventilation': return <Fan size={24} />;
+            case 'Lighting': return <Lightbulb size={24} />;
+            case 'Appliance': return <Zap size={24} />;
+            default: return <Settings size={24} />;
+        }
+    };
 
     const activeCount = equipmentList.filter(eq => eq.status).length;
     const totalPower = equipmentList
@@ -105,8 +149,8 @@ const EquipmentControl = () => {
         <div className="equipment-control-container">
             <header className="page-header">
                 <div className="header-content">
-                    <h2>Equipment Management</h2>
-                    <p>Control and monitor your data center infrastructure.</p>
+                    <h2>Campus Infrastructure Control</h2>
+                    <p>Live resource management for your smart campus.</p>
                 </div>
                 <div className="header-actions">
                     <button className="add-btn secondary" onClick={() => setShowZoneModal(true)}>
@@ -133,11 +177,11 @@ const EquipmentControl = () => {
                 </div>
                 <div className="summary-card card-glass">
                     <div className="summary-icon warning">
-                        <Settings size={24} />
+                        <Zap size={24} />
                     </div>
                     <div className="summary-content">
-                        <p className="summary-label">Total Power Usage</p>
-                        <h2 className="summary-value">{totalPower} kW</h2>
+                        <p className="summary-label">Live Load (W)</p>
+                        <h2 className="summary-value">{totalPower} W</h2>
                     </div>
                 </div>
                 <div className="summary-card card-glass">
@@ -145,7 +189,7 @@ const EquipmentControl = () => {
                         <Clock size={24} />
                     </div>
                     <div className="summary-content">
-                        <p className="summary-label">Scheduled Tasks</p>
+                        <p className="summary-label">Schedules Run</p>
                         <h2 className="summary-value">
                             {equipmentList.filter(eq => eq.schedule?.enabled).length}
                         </h2>
@@ -170,7 +214,7 @@ const EquipmentControl = () => {
                     <div key={eq.id} className={`equipment-card ${eq.status ? 'active' : ''}`}>
                         <div className="card-header">
                             <div className="eq-icon-wrap">
-                                <Settings size={24} /> {/* Using a generic Settings icon for now */}
+                                {getIconForType(eq.type)}
                             </div>
                             <div className="eq-info">
                                 <h3>{eq.name}</h3>
@@ -181,14 +225,32 @@ const EquipmentControl = () => {
                         <div className="card-body">
                             <div className="details-grid">
                                 <div className="detail highlight">
-                                    <label>Live Draw</label>
-                                    <span>{eq.power} kW</span>
+                                    <label>Draw</label>
+                                    <span>{eq.power}W</span>
                                 </div>
                                 <div className="detail">
-                                    <label>Schedule</label>
-                                    <span>{eq.schedule?.enabled ? eq.schedule.time : 'None'}</span>
+                                    <label>Scale</label>
+                                    <span>{eq.maxScale ? `${eq.minScale}-${eq.maxScale}${eq.unit}` : 'Binary'}</span>
                                 </div>
                             </div>
+
+                            {/* Scale Controls - Only if min/max defined */}
+                            {eq.maxScale !== null && eq.status && (
+                                <div className="scale-control-group">
+                                    <div className="scale-label">
+                                        <span>Intensity/Level</span>
+                                        <span className="current-val">{eq.value}{eq.unit}</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min={eq.minScale}
+                                        max={eq.maxScale}
+                                        value={eq.value}
+                                        onChange={(e) => handleScaleUpdate(eq.id, parseInt(e.target.value))}
+                                        className="scale-slider"
+                                    />
+                                </div>
+                            )}
 
                             <div className="status-row">
                                 <div className="status-indicator">
@@ -224,7 +286,7 @@ const EquipmentControl = () => {
                 <div className="modal-overlay">
                     <div className="modal-content glass">
                         <div className="modal-header">
-                            <h3>Create New Management Zone</h3>
+                            <h3>Create Campus Zone</h3>
                             <button className="close-btn" onClick={() => setShowZoneModal(false)}>
                                 <X size={24} />
                             </button>
@@ -235,7 +297,7 @@ const EquipmentControl = () => {
                                 <input
                                     type="text"
                                     required
-                                    placeholder="e.g. Server Floor 2"
+                                    placeholder="e.g. Block C"
                                     value={newZone.name}
                                     onChange={(e) => setNewZone({ ...newZone, name: e.target.value })}
                                 />
@@ -243,7 +305,7 @@ const EquipmentControl = () => {
                             <div className="form-group">
                                 <label>Description</label>
                                 <textarea
-                                    placeholder="Brief purpose of this zone..."
+                                    placeholder="Description..."
                                     value={newZone.description}
                                     onChange={(e) => setNewZone({ ...newZone, description: e.target.value })}
                                 />
@@ -262,24 +324,35 @@ const EquipmentControl = () => {
                 <div className="modal-overlay">
                     <div className="modal-content glass">
                         <div className="modal-header">
-                            <h3>Register New Infrastructure Node</h3>
+                            <h3>Deploy New Smart Resource</h3>
                             <button className="close-btn" onClick={() => setShowEquipmentModal(false)}>
                                 <X size={24} />
                             </button>
                         </div>
                         <form className="admin-form" onSubmit={handleAddEquipment}>
                             <div className="form-group">
-                                <label>Equipment Name</label>
+                                <label>Equipment Template</label>
+                                <select
+                                    required
+                                    value={newEquipment.templateId}
+                                    onChange={(e) => setNewEquipment({ ...newEquipment, templateId: e.target.value })}
+                                >
+                                    {EQUIPMENT_TEMPLATES.map(t => (
+                                        <option key={t.id} value={t.id}>{t.name} ({t.power}W)</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>Custom Name (Optional)</label>
                                 <input
                                     type="text"
-                                    required
-                                    placeholder="e.g. UPS Unit 05"
+                                    placeholder="e.g. Lab AC 1"
                                     value={newEquipment.name}
                                     onChange={(e) => setNewEquipment({ ...newEquipment, name: e.target.value })}
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Assigned Zone</label>
+                                <label>Deployment Zone</label>
                                 <select
                                     required
                                     value={newEquipment.zone}
@@ -289,40 +362,14 @@ const EquipmentControl = () => {
                                     {zones.map(z => (
                                         <option key={z._id} value={z.name}>{z.name}</option>
                                     ))}
-                                    {/* Fallback for hardcoded zones if none in DB yet */}
                                     {zones.length === 0 && Array.from(new Set(equipmentList.map(eq => eq.zone))).map(z => (
                                         <option key={z} value={z}>{z}</option>
                                     ))}
                                 </select>
                             </div>
-                            <div className="form-group">
-                                <label>Expected Power Draw (kW)</label>
-                                <input
-                                    type="number"
-                                    step="0.1"
-                                    required
-                                    placeholder="0.0"
-                                    value={newEquipment.power}
-                                    onChange={(e) => setNewEquipment({ ...newEquipment, power: e.target.value })}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Asset Type</label>
-                                <select
-                                    value={newEquipment.type}
-                                    onChange={(e) => setNewEquipment({ ...newEquipment, type: e.target.value })}
-                                >
-                                    <option value="Compute">Compute</option>
-                                    <option value="Cooling">Cooling</option>
-                                    <option value="Networking">Networking</option>
-                                    <option value="Power">Power</option>
-                                    <option value="Lighting">Lighting</option>
-                                    <option value="Security">Security</option>
-                                </select>
-                            </div>
                             <div className="modal-footer">
                                 <button type="button" className="cancel-btn" onClick={() => setShowEquipmentModal(false)}>Cancel</button>
-                                <button type="submit" className="submit-btn">Register Node</button>
+                                <button type="submit" className="submit-btn">Deploy Equipment</button>
                             </div>
                         </form>
                     </div>

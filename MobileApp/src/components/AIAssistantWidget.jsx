@@ -61,7 +61,8 @@ const AIAssistantWidget = () => {
 
                 if (targetEquipment) {
                     const executeAction = () => {
-                        const isTurningOn = command === 'ON';
+                        const isTurningOn = command === 'ON' || command === 'SET';
+                        const hasNewValue = act.hasOwnProperty('newValue');
 
                         // Publish MQTT command
                         if (window.mqttClient && window.mqttClient.connected) {
@@ -69,7 +70,8 @@ const AIAssistantWidget = () => {
                             const payload = JSON.stringify({
                                 command: command,
                                 timestamp: new Date().toISOString(),
-                                enabled: isTurningOn
+                                enabled: isTurningOn,
+                                value: hasNewValue ? act.newValue : targetEquipment.value
                             });
                             window.mqttClient.publish(topic, payload);
                             console.log(`🤖 AI Executed MQTT to ${topic}: ${payload}`);
@@ -79,7 +81,11 @@ const AIAssistantWidget = () => {
                         setEquipment(prevEquipment =>
                             prevEquipment.map(eq =>
                                 eq.id === targetEquipment.id
-                                    ? { ...eq, status: isTurningOn }
+                                    ? {
+                                        ...eq,
+                                        status: isTurningOn,
+                                        value: hasNewValue ? act.newValue : eq.value
+                                    }
                                     : eq
                             )
                         );
