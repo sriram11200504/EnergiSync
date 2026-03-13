@@ -25,7 +25,7 @@ import {
 import './EnergyInsights.css';
 
 const EnergyInsights = () => {
-    const { currentPower, energyHistory, appliances } = useContext(EnergyContext);
+    const { currentPower, energyHistory, equipmentList } = useContext(EnergyContext);
 
     // Historic mockup blending with live data for continuous metrics
     const weeklyData = [
@@ -54,13 +54,12 @@ const EnergyInsights = () => {
     ];
 
     // Compute appliance comparison dynamically from live power 
-    const applianceComparison = appliances.map(app => {
-        const thisMonthProj = app.status ? Math.round(parseFloat(app.power) * 120) : Math.round(parseFloat(app.power) * 30);
-        const base = app.type === 'AC' ? 850 : 200;
+    const equipmentComparison = equipmentList.map(eq => {
+        const thisMonthProj = eq.status ? Math.round(parseFloat(eq.power) * 120) : Math.round(parseFloat(eq.power) * 30);
         return {
-            appliance: app.name.replace(' Machine', ''),
+            appliance: eq.name,
             thisMonth: thisMonthProj,
-            lastMonth: base
+            lastMonth: Math.round(thisMonthProj * 1.1) // Mock 10% higher last month: base
         };
     }).slice(0, 6);
 
@@ -73,8 +72,8 @@ const EnergyInsights = () => {
             icon: Zap
         },
         {
-            title: 'Active Appliances',
-            value: appliances.filter(a => a.status).length.toString(),
+            title: 'Active Equipment',
+            value: equipmentList.filter(a => a.status).length.toString(),
             description: 'Currently consuming power',
             trend: 'up',
             icon: TrendingUp
@@ -234,11 +233,11 @@ const EnergyInsights = () => {
 
                 <div className="chart-card card-glass">
                     <div className="chart-header">
-                        <h3>Appliance Comparison</h3>
+                        <h3>Equipment Comparison</h3>
                         <span className="badge badge-warning">Month-over-Month</span>
                     </div>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={applianceComparison}>
+                        <BarChart data={equipmentComparison}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                             <XAxis dataKey="appliance" stroke="var(--text-tertiary)" />
                             <YAxis stroke="var(--text-tertiary)" />
@@ -286,14 +285,14 @@ const EnergyInsights = () => {
                         <span>Last Month</span>
                         <span>Change</span>
                     </div>
-                    {applianceComparison.map((item, index) => {
+                    {equipmentComparison.map((item, index) => {
                         const change = ((item.thisMonth - item.lastMonth) / item.lastMonth * 100).toFixed(1);
                         const isIncrease = item.thisMonth > item.lastMonth;
                         return (
                             <div key={index} className="table-row">
                                 <span className="appliance-name">{item.appliance}</span>
                                 <span className="value">₹{item.thisMonth}</span>
-                                <span className="value text-secondary">₹{item.lastMonth}</span>
+                                <strong className="text-secondary">{equipmentComparison.find(a => !!a.lastMonth)?.lastMonth || 45} kWh</strong>
                                 <span className={`change ${isIncrease ? 'text-danger' : 'text-success'}`}>
                                     {isIncrease ? '+' : ''}{change}%
                                 </span>

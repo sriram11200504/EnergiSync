@@ -8,15 +8,15 @@ const MODEL = 'llama-3.3-70b-versatile';
 /**
  * Generate a one-shot energy saving insight
  */
-export const generateEnergyInsights = async (currentPower, appliances) => {
+const generateEnergyInsights = async (currentPower, equipment) => {
     if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'your_groq_api_key_here') {
         return "Please add your GROQ_API_KEY to backend/.env to activate the AI assistant.";
     }
 
     try {
-        const activeAppliances = appliances
-            .filter(app => app.status)
-            .map(app => `${app.name} (${app.power} kW)`)
+        const activeEquipment = equipment
+            .filter(eq => eq.status)
+            .map(eq => `${eq.name} (${eq.power} kW)`)
             .join(', ');
 
         const response = await groq.chat.completions.create({
@@ -24,11 +24,11 @@ export const generateEnergyInsights = async (currentPower, appliances) => {
             messages: [
                 {
                     role: 'system',
-                    content: 'You are an intelligent home energy assistant for a smart app called EnergiSync. Give short, friendly, data-specific 2-sentence energy saving tips.'
+                    content: 'You are an intelligent smart campus energy manager for a platform called EnergiSync. Give short, professional, data-specific 2-sentence energy saving insights.'
                 },
                 {
                     role: 'user',
-                    content: `The user is currently consuming ${currentPower} kW. Active appliances: ${activeAppliances || 'None'}. Provide a specific tip based on this data.`
+                    content: `The campus is currently consuming ${currentPower} kW. Active equipment: ${activeEquipment || 'None'}. Provide a specific insight based on this data.`
                 }
             ],
             max_tokens: 150
@@ -42,28 +42,30 @@ export const generateEnergyInsights = async (currentPower, appliances) => {
 };
 
 /**
- * Chat with AI, with optional function-calling to control appliances
+ * Chat with AI, with optional function-calling to control equipment
  */
-export const chatWithAi = async (message, currentPower, appliances) => {
+const chatWithAi = async (message, currentPower, equipment) => {
     if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'your_groq_api_key_here') {
         return { text: "Please add your GROQ_API_KEY to backend/.env." };
     }
 
     try {
-        const applianceListStr = appliances
-            .map(a => `- ${a.name} in the ${a.room} (Currently ${a.status ? 'ON' : 'OFF'})`)
+        const equipmentListStr = equipment
+            .map(e => `- ${e.name} in the ${e.zone} (Currently ${e.status ? 'ON' : 'OFF'})`)
             .join('\n') || 'None';
 
-        const systemPrompt = `You are EnergiSync AI, a smart home energy assistant.
+        const systemPrompt = `You are EnergiSync AI, a smart campus energy assistant.
 Current live power draw: ${currentPower} kW.
-Appliances:
-${applianceListStr}
+Equipment:
+${equipmentListStr}
 
-If the user asks to control an appliance, respond ONLY with a JSON object in this exact format (no extra text):
-{"action": "controlAppliances", "actions": [{"applianceName": "Air Conditioner", "command": "OFF"}]}
+If the user asks to control an equipment (including setting temperature, speed, or intensity), respond ONLY with a JSON object in this exact format:
+{"action": "controlEquipment", "actions": [{"equipmentName": "AC", "command": "ON", "newValue": 20, "delay": 5}]}
 
-For multiple appliances follow the same format with multiple items in the actions array.
-For all other questions, answer helpfully and concisely in plain text.`;
+- "command" can be "ON", "OFF", or "SET".
+- "newValue" is the numerical value for temperature, speed (1-5), or intensity (0-100).
+- "delay" is optional and should be in seconds.
+- For all other questions, answer helpfully and concisely in plain text.`;
 
         const response = await groq.chat.completions.create({
             model: MODEL,
@@ -77,23 +79,27 @@ For all other questions, answer helpfully and concisely in plain text.`;
 
         const rawText = response.choices[0]?.message?.content || '';
 
-        // Strip markdown code fences if the model wraps its JSON (e.g. ```json ... ```)
+        // Strip markdown code fences if the model wraps its JSON
         const cleanedText = rawText.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim();
 
         // Try to parse as an action JSON response
-        const jsonMatch = cleanedText.match(/\{[\s\S]*"action"\s*:\s*"controlAppliances"[\s\S]*\}/);
+        const jsonMatch = cleanedText.match(/\{[\s\S]*"action"\s*:\s*"controlEquipment"[\s\S]*\}/);
         if (jsonMatch) {
             try {
                 const actionData = JSON.parse(jsonMatch[0]);
+                const hasDelay = actionData.actions.some(a => a.delay > 0);
+
                 return {
-                    text: "I'll execute that command for you now.",
+                    text: hasDelay
+                        ? "I've scheduled those commands with the requested delay."
+                        : "I'll execute that command for you now.",
                     action: {
-                        name: 'controlAppliances',
+                        name: 'controlEquipment',
                         args: { actions: actionData.actions }
                     }
                 };
-            } catch (parseError) {
-                console.warn("AI returned action-like text but JSON parsing failed:", parseError.message);
+            } catch (error) {
+                console.warn("AI returned action-like text but JSON parsing failed:", error.message);
             }
         }
 
@@ -105,3 +111,40 @@ For all other questions, answer helpfully and concisely in plain text.`;
     }
 };
 
+/**
+ * Generate specific optimization advice for the Tariff Optimizer
+ */
+const generateOptimizationAdvice = async (equipment) => {
+    if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'your_groq_api_key_here') {
+        return "Please add your GROQ_API_KEY to activate AI optimizations.";
+    }
+
+    try {
+        const equipmentSummary = equipment
+            .map(e => `- ${e.name} (${e.power}W) in ${e.zone}. Status: ${e.status ? 'ON' : 'OFF'}`)
+            .join('\n');
+
+        const response = await groq.chat.completions.create({
+            model: MODEL,
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are an Expert Smart Energy Consultant. Analyze the provided equipment list and give 3 precise, actionable bullet points to optimize energy costs using time-of-day tariffs (Peak: 9-12 and 18-21, Off-Peak: 22-05). Be specific about which appliances to shift.'
+                },
+                {
+                    role: 'user',
+                    content: `Here is the current equipment configuration:\n${equipmentSummary}\nProvide optimization advice.`
+                }
+            ],
+            max_tokens: 400,
+            temperature: 0.7
+        });
+
+        return response.choices[0]?.message?.content || "No advice available at the moment.";
+    } catch (error) {
+        console.error("Groq AI Advice Error:", error.message);
+        return "Unable to generate optimization strategies right now.";
+    }
+};
+
+module.exports = { generateEnergyInsights, chatWithAi, generateOptimizationAdvice };

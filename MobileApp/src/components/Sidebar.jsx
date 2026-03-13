@@ -15,7 +15,7 @@ import './Sidebar.css';
 const Sidebar = () => {
     const navItems = [
         { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-        { path: '/appliances', icon: Zap, label: 'Appliances' },
+        { path: '/equipment', icon: Zap, label: 'Equipment' },
         { path: '/tariff', icon: TrendingDown, label: 'Tariff Optimizer' },
         { path: '/insights', icon: BarChart3, label: 'Energy Insights' },
         { path: '/carbon', icon: Leaf, label: 'Carbon Footprint' },
@@ -54,7 +54,7 @@ const Sidebar = () => {
                 ))}
             </nav>
 
-            <div className="sidebar-footer">
+            {/* <div className="sidebar-footer">
                 <div className="user-info glass">
                     <div className="user-avatar">
                         <span>U</span>
@@ -64,8 +64,8 @@ const Sidebar = () => {
                         <p className="user-email">user@energysync.com</p>
                     </div>
                 </div>
-            </div>
-        </aside>
+            </div> */}
+        </aside >
     );
 };
 

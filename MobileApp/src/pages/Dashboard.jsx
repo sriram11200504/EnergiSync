@@ -27,22 +27,23 @@ import {
 import './Dashboard.css';
 
 const Dashboard = () => {
-    const { currentPower, appliances, energyHistory, billingSummary } = useContext(EnergyContext);
+    const { currentPower, equipmentList, setEquipment, energyHistory, billingSummary } = useContext(EnergyContext);
 
     // Fallback if no history yet
     const displayEnergyData = energyHistory.length > 0 ? energyHistory : [
         { time: '00:00', consumption: 0, cost: 0 }
     ];
 
-    const activeAppliances = appliances.filter(app => app.status);
+    // Calculate active equipment
+    const activeEquipmentCount = equipmentList.filter(eq => eq.status).length;
 
     // Prepare dynamic pie chart data
-    const activeTotalPower = activeAppliances.reduce((sum, app) => sum + parseFloat(app.power), 0) || 1;
+    const activeTotalPower = equipmentList.filter(eq => eq.status).reduce((sum, eq) => sum + parseFloat(eq.power), 0) || 1;
     const colors = ['hsl(210, 100%, 56%)', 'hsl(142, 71%, 45%)', 'hsl(25, 95%, 53%)', 'hsl(45, 93%, 58%)', 'hsl(271, 76%, 53%)'];
 
-    const applianceData = activeAppliances.length > 0 ? activeAppliances.map((app, index) => ({
-        name: app.name,
-        value: parseFloat(app.power), // Raw value, recharts pie calculates percentage natively
+    const equipmentData = equipmentList.filter(eq => eq.status).length > 0 ? equipmentList.filter(eq => eq.status).map((eq, index) => ({
+        name: eq.name,
+        value: parseFloat(eq.power), // Raw value, recharts pie calculates percentage natively
         color: colors[index % colors.length]
     })) : [{ name: 'None Active', value: 1, color: 'hsl(0, 0%, 20%)' }];
 
@@ -85,18 +86,17 @@ const Dashboard = () => {
         },
     ];
 
-    // Format active appliances for UI display
-    const formattedActiveAppliances = activeAppliances.map(app => ({
-        name: app.name,
-        room: app.room,
-        power: `${app.power} kW`,
-        status: 'on',
-        temp: app.type === 'AC' ? '24°C' : null,
-        cycle: app.type === 'Washing Machine' ? 'Running' : null
-    }));
+    const toggleEquipment = (id) => {
+        setEquipment(prev => prev.map(eq =>
+            eq.id === id ? { ...eq, status: !eq.status } : eq
+        ));
+    };
 
     return (
-        <div className="dashboard">
+        <div className="dashboard-container">
+            <header className="dashboard-header">
+                <h2>Manage and control all your connected equipment</h2>
+            </header>
             <div className="dashboard-header">
                 <div>
                     <h1>Dashboard</h1>
@@ -131,6 +131,15 @@ const Dashboard = () => {
                         </div>
                     </div>
                 ))}
+                <div className="stat-card">
+                    <div className="stat-icon power-icon">
+                        <Power size={24} />
+                    </div>
+                    <div className="stat-info">
+                        <span className="stat-label">Active Equipment</span>
+                        <span className="stat-value">{activeEquipmentCount}</span>
+                    </div>
+                </div>
             </div>
 
             {/* Charts Section */}
@@ -172,13 +181,13 @@ const Dashboard = () => {
 
                 <div className="chart-card card-glass">
                     <div className="chart-header">
-                        <h3>Appliance Distribution</h3>
+                        <h3>Equipment Distribution</h3>
                         <span className="badge badge-warning">Today</span>
                     </div>
                     <ResponsiveContainer width="100%" height={300}>
                         <PieChart>
                             <Pie
-                                data={applianceData}
+                                data={equipmentData}
                                 cx="50%"
                                 cy="50%"
                                 innerRadius={60}
@@ -186,7 +195,7 @@ const Dashboard = () => {
                                 paddingAngle={5}
                                 dataKey="value"
                             >
-                                {applianceData.map((entry, index) => (
+                                {equipmentData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
                             </Pie>
@@ -200,62 +209,61 @@ const Dashboard = () => {
                         </PieChart>
                     </ResponsiveContainer>
                     <div className="pie-legend">
-                        {applianceData.map((item, index) => (
+                        {equipmentData.map((item, index) => (
                             <div key={index} className="legend-item">
                                 <div className="legend-color" style={{ backgroundColor: item.color }}></div>
                                 <span className="legend-label">{item.name}</span>
-                                <span className="legend-value">{item.value}%</span>
+                                <span className="legend-value">{((item.value / activeTotalPower) * 100).toFixed(1)}%</span>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
 
-            {/* Active Appliances */}
-            <div className="active-appliances card-glass">
+
+
+            <section className="equipment-section">
                 <div className="section-header">
-                    <h3>Active Appliances</h3>
-                    <span className="badge badge-success">
-                        <Activity size={12} />
-                        {formattedActiveAppliances.length} Running
-                    </span>
+                    <h3>Connected Devices</h3>
                 </div>
-                <div className="appliances-list">
-                    {formattedActiveAppliances.map((appliance, index) => (
-                        <div key={index} className="appliance-item">
-                            <div className="appliance-icon">
-                                <Power size={20} />
-                            </div>
-                            <div className="appliance-info">
-                                <h4>{appliance.name}</h4>
-                                <p className="text-secondary">{appliance.room}</p>
-                            </div>
-                            <div className="appliance-stats">
-                                <div className="appliance-stat">
-                                    <span className="stat-label">Power</span>
-                                    <span className="stat-value">{appliance.power}</span>
+                <div className="equipment-list-grid">
+                    {equipmentList.map((eq) => (
+                        <div key={eq.id} className={`equipment-card glass ${eq.status ? 'active' : ''}`}>
+                            <div className="equipment-header">
+                                <div className="equipment-info">
+                                    <div className="equipment-icon">
+                                        <Zap size={24} />
+                                    </div>
+                                    <div className="equipment-details">
+                                        <h3>{eq.name}</h3>
+                                        <p>{eq.zone}</p>
+                                    </div>
                                 </div>
-                                {appliance.temp && (
-                                    <div className="appliance-stat">
-                                        <span className="stat-label">Temp</span>
-                                        <span className="stat-value">{appliance.temp}</span>
-                                    </div>
-                                )}
-                                {appliance.cycle && (
-                                    <div className="appliance-stat">
-                                        <span className="stat-label">Time</span>
-                                        <span className="stat-value">{appliance.cycle}</span>
-                                    </div>
-                                )}
+                                <button
+                                    className={`power-btn ${eq.status ? 'on' : 'off'}`}
+                                    onClick={() => toggleEquipment(eq.id)}
+                                >
+                                    <Power size={20} />
+                                </button>
                             </div>
-                            <div className="appliance-status">
-                                <span className="status-indicator active"></span>
-                                <span className="text-success">Running</span>
+
+                            <div className="equipment-stats">
+                                <div className="stat">
+                                    <span>Power</span>
+                                    <strong>{eq.power} kW</strong>
+                                </div>
                             </div>
+
+                            {eq.schedule?.enabled && (
+                                <div className="equipment-schedule">
+                                    <Clock size={16} />
+                                    <span>Scheduled: {eq.schedule.time}</span>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
-            </div>
+            </section>
 
             {/* Smart Recommendations */}
             <div className="recommendations card-glass">

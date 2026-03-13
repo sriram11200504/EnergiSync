@@ -140,6 +140,7 @@ build/
 
 ./backend/.env
 ./MobileApp/.env
+*.env
 # Logs
 logs
 *.log

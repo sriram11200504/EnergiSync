@@ -1,12 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
-import ApplianceControl from './pages/ApplianceControl';
+import EquipmentControl from './pages/EquipmentControl'; // Changed from ApplianceControl
 import TariffOptimization from './pages/TariffOptimization';
 import EnergyInsights from './pages/EnergyInsights';
 import CarbonFootprint from './pages/CarbonFootprint';
 import Billing from './pages/Billing';
-import EnergyTrading from './pages/EnergyTrading';
+import EnergyTrade from './pages/EnergyTrade';
 import Settings from './pages/Settings';
 import AIAssistantWidget from './components/AIAssistantWidget';
 import { EnergyProvider } from './context/EnergyContext';
@@ -21,12 +21,12 @@ function App() {
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/appliances" element={<ApplianceControl />} />
+              <Route path="/equipment" element={<EquipmentControl />} /> {/* Changed from /appliances */}
               <Route path="/tariff" element={<TariffOptimization />} />
               <Route path="/insights" element={<EnergyInsights />} />
               <Route path="/carbon" element={<CarbonFootprint />} />
               <Route path="/billing" element={<Billing />} />
-              <Route path="/trading" element={<EnergyTrading />} />
+              <Route path="/trading" element={<EnergyTrade />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </main>

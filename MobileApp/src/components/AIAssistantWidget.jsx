@@ -4,13 +4,14 @@ import { Bot, X, Send, Sparkles, Loader2 } from 'lucide-react';
 import './AIAssistantWidget.css';
 
 const AIAssistantWidget = () => {
-    const { currentPower, appliances, setAppliances } = useContext(EnergyContext);
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { role: 'assistant', text: "Hi! I'm your EnergiSync AI. Ask me about your current energy usage or how to save power!" }
+        { role: 'assistant', text: 'Hello! I am EnergiSync AI. How can I help optimize your campus energy today?' }
     ]);
     const [input, setInput] = useState('');
-    const [isTyping, setIsTyping] = useState(false);
+    const [isThinking, setIsThinking] = useState(false);
+
+    const { currentPower, equipmentList, setEquipment } = useContext(EnergyContext);
 
     // Auto-scroll logic
     const messagesEndRef = useRef(null);
@@ -23,60 +24,79 @@ const AIAssistantWidget = () => {
 
     const handleSend = async (e) => {
         e.preventDefault();
-        if (!input.trim() || isTyping) return;
+        if (!input.trim() || isThinking) return;
 
-        const userMsg = input.trim();
+        const userMessage = input.trim();
         setInput('');
-        setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-        setIsTyping(true);
+        setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+        setIsThinking(true);
 
-        // Call backend AI endpoint (Groq runs on backend — key never exposed to browser)
+        // Call backend API
         const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/ai/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: userMsg, currentPower, appliances })
+            body: JSON.stringify({
+                message: userMessage,
+                currentPower: currentPower,
+                equipment: equipmentList
+            })
         });
         const responseData = await res.json();
 
         setMessages(prev => [...prev, { role: 'assistant', text: responseData.text }]);
 
         // Execute hardware command if AI decided it was necessary
-        if (responseData.action && responseData.action.name === 'controlAppliances') {
+        if (responseData.action && responseData.action.name === 'controlEquipment') {
             const actions = responseData.action.args.actions;
             let successCount = 0;
             let failCount = 0;
 
             for (const act of actions) {
-                const { applianceName, command } = act;
-                // Soft match to handle "Air Conditioner in the Living Room" vs "Air Conditioner"
-                const targetAppliance = appliances.find(a =>
-                    applianceName.toLowerCase().includes(a.name.toLowerCase()) ||
-                    a.name.toLowerCase().includes(applianceName.toLowerCase())
+                const { equipmentName, command, delay } = act;
+                // Soft match
+                const targetEquipment = equipmentList.find(a =>
+                    equipmentName.toLowerCase().includes(a.name.toLowerCase()) ||
+                    a.name.toLowerCase().includes(equipmentName.toLowerCase())
                 );
 
-                if (targetAppliance) {
-                    const isTurningOn = command === 'ON';
+                if (targetEquipment) {
+                    const executeAction = () => {
+                        const isTurningOn = command === 'ON' || command === 'SET';
+                        const hasNewValue = act.hasOwnProperty('newValue');
 
-                    // Publish MQTT command (fix: replaceAll so multi-word names get all spaces replaced)
-                    if (window.mqttClient && window.mqttClient.connected) {
-                        const topic = `energysync/control/${targetAppliance.name.toLowerCase().replaceAll(' ', '_')}`;
-                        const payload = JSON.stringify({
-                            command: command,
-                            timestamp: new Date().toISOString(),
-                            enabled: isTurningOn
-                        });
-                        window.mqttClient.publish(topic, payload);
-                        console.log(`🤖 AI Sent MQTT to ${topic}: ${payload}`);
+                        // Publish MQTT command
+                        if (window.mqttClient && window.mqttClient.connected) {
+                            const topic = `energysync/control/${targetEquipment.name.toLowerCase().replaceAll(' ', '_')}`;
+                            const payload = JSON.stringify({
+                                command: command,
+                                timestamp: new Date().toISOString(),
+                                enabled: isTurningOn,
+                                value: hasNewValue ? act.newValue : targetEquipment.value
+                            });
+                            window.mqttClient.publish(topic, payload);
+                            console.log(`🤖 AI Executed MQTT to ${topic}: ${payload}`);
+                        }
+
+                        // Update React UI state optimistically
+                        setEquipment(prevEquipment =>
+                            prevEquipment.map(eq =>
+                                eq.id === targetEquipment.id
+                                    ? {
+                                        ...eq,
+                                        status: isTurningOn,
+                                        value: hasNewValue ? act.newValue : eq.value
+                                    }
+                                    : eq
+                            )
+                        );
+                    };
+
+                    if (delay && delay > 0) {
+                        console.log(`🤖 AI Scheduled action for ${targetEquipment.name} with ${delay}s delay`);
+                        setTimeout(executeAction, delay * 1000);
+                    } else {
+                        executeAction();
                     }
-
-                    // Update React UI state optimistically
-                    setAppliances(prevAppliances =>
-                        prevAppliances.map(app =>
-                            app.id === targetAppliance.id
-                                ? { ...app, status: isTurningOn }
-                                : app
-                        )
-                    );
 
                     successCount++;
                 } else {
@@ -85,13 +105,13 @@ const AIAssistantWidget = () => {
             }
 
             if (failCount > 0 && successCount === 0) {
-                setMessages(prev => [...prev, { role: 'assistant', text: `(System: Could not find the specified appliance. Please check the name and try again.)` }]);
+                setMessages(prev => [...prev, { role: 'assistant', text: `(System: Could not find the specified equipment. Please check the name and try again.)` }]);
             } else if (successCount > 0) {
                 setMessages(prev => [...prev, { role: 'assistant', text: `(System: ✅ ${successCount} command(s) executed successfully.)` }]);
             }
         }
 
-        setIsTyping(false);
+        setIsThinking(false);
     };
 
     return (
@@ -114,6 +134,7 @@ const AIAssistantWidget = () => {
                         <div className="ai-header-title">
                             <Bot size={20} className="text-secondary-blue" />
                             <h3>EnergiSync AI</h3>
+                            <span className="status-indicator active"></span>
                         </div>
                         <button className="btn btn-ghost btn-sm" onClick={() => setIsOpen(false)}>
                             <X size={20} />
@@ -126,7 +147,7 @@ const AIAssistantWidget = () => {
                                 {msg.text}
                             </div>
                         ))}
-                        {isTyping && (
+                        {isThinking && (
                             <div className="message-bubble assistant typing">
                                 <Loader2 size={16} className="spin" /> Thinking...
                             </div>
@@ -140,12 +161,12 @@ const AIAssistantWidget = () => {
                             placeholder="Ask about your energy..."
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            disabled={isTyping}
+                            disabled={isThinking}
                         />
                         <button
                             type="submit"
                             className="btn btn-primary btn-icon"
-                            disabled={!input.trim() || isTyping}
+                            disabled={!input.trim() || isThinking}
                         >
                             <Send size={18} />
                         </button>
