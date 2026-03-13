@@ -6,7 +6,7 @@ import './AIAssistantWidget.css';
 const AIAssistantWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
-        { role: 'assistant', text: 'Hello! I am EnergiSync Data Center AI. How can I help optimize your infrastructure today?' }
+        { role: 'assistant', text: 'Hello! I am EnergiSync AI. How can I help optimize your campus energy today?' }
     ]);
     const [input, setInput] = useState('');
     const [isThinking, setIsThinking] = useState(false);
@@ -133,7 +133,7 @@ const AIAssistantWidget = () => {
                     <div className="ai-chat-header">
                         <div className="ai-header-title">
                             <Bot size={20} className="text-secondary-blue" />
-                            <h3>EnergiSync Data Center AI</h3>
+                            <h3>EnergiSync AI</h3>
                             <span className="status-indicator active"></span>
                         </div>
                         <button className="btn btn-ghost btn-sm" onClick={() => setIsOpen(false)}>

@@ -24,11 +24,11 @@ const generateEnergyInsights = async (currentPower, equipment) => {
             messages: [
                 {
                     role: 'system',
-                    content: 'You are an intelligent data center energy manager for a platform called EnergiSync. Give short, professional, data-specific 2-sentence energy saving insights.'
+                    content: 'You are an intelligent smart campus energy manager for a platform called EnergiSync. Give short, professional, data-specific 2-sentence energy saving insights.'
                 },
                 {
                     role: 'user',
-                    content: `The data center is currently consuming ${currentPower} kW. Active equipment: ${activeEquipment || 'None'}. Provide a specific insight based on this data.`
+                    content: `The campus is currently consuming ${currentPower} kW. Active equipment: ${activeEquipment || 'None'}. Provide a specific insight based on this data.`
                 }
             ],
             max_tokens: 150
@@ -54,7 +54,7 @@ const chatWithAi = async (message, currentPower, equipment) => {
             .map(e => `- ${e.name} in the ${e.zone} (Currently ${e.status ? 'ON' : 'OFF'})`)
             .join('\n') || 'None';
 
-        const systemPrompt = `You are EnergiSync Data Center AI, a smart campus energy assistant.
+        const systemPrompt = `You are EnergiSync AI, a smart campus energy assistant.
 Current live power draw: ${currentPower} kW.
 Equipment:
 ${equipmentListStr}
